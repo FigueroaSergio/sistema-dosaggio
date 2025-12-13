@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+  <body>
+    <h1>Simulación de Lectura de Báscula (Patrón Observer)</h1>
+    <p>Simula que la báscula escribe: **5,34** luego presiona **Enter**.</p>
+    <p>Intenta escribir: **12,50** y luego **Enter**.</p>
+    <hr />
+    <h2>Peso Actual: <span id="weight-value">Esperando lectura...</span></h2>
+    <p>
+      Revisa la consola (F12) para ver las actualizaciones de **Logger** y
+      **Publisher**.
+    </p>
+  </body>
+  <script>
+    class WeightPublisher {
+      constructor() {
+        this.weight = null; // El valor actual del peso
+        this.subscribers = []; // Lista de funciones o objetos suscriptores
+      }
+
+      // Método para registrar un nuevo suscriptor
+      subscribe(subscriber) {
+        if (typeof subscriber === "function") {
+          this.subscribers.push({ update: subscriber });
+        } else if (typeof subscriber.update === "function") {
+          this.subscribers.push(subscriber);
+        } else {
+          console.error(
+            "El suscriptor debe ser una función o tener un método 'update'."
+          );
+        }
+      }
+
+      // Método para desregistrar un suscriptor (opcional)
+      unsubscribe(subscriber) {
+        this.subscribers = this.subscribers.filter(
+          (sub) => sub.update !== subscriber.update
+        );
+      }
+
+      // Método principal para actualizar el peso y notificar
+      setWeight(newWeight) {
+        // Formato esperado: X,XX. Reemplazamos la coma por punto para trabajar con números en JS
+        const numericWeight = parseFloat(newWeight.replace(",", "."));
+
+        if (!isNaN(numericWeight)) {
+          this.weight = numericWeight;
+          console.log(`[Publisher] Nuevo peso detectado: ${this.weight} kg`);
+          this.notify(this.weight);
+        } else {
+          console.error(
+            `[Publisher] El valor "${newWeight}" no es un peso válido.`
+          );
+        }
+      }
+
+      // Método para notificar a todos los suscriptores
+      notify(weight) {
+        this.subscribers.forEach((subscriber) => {
+          // El suscriptor recibe el nuevo valor para actuar
+          subscriber.update(weight);
+        });
+      }
+    }
+
+    /**
+     * 2. Suscriptores (Ejemplos)
+     * --------------------------
+     */
+
+    // Ejemplo 1: Muestra el peso en una interfaz (simulado)
+    const WeightDisplay = {
+      update: function (weight) {
+        const displayElement = document.getElementById("weight-value");
+        if (displayElement) {
+          displayElement.textContent = weight.toFixed(2) + " kg";
+        }
+        console.log(`[Display] Actualizando UI: ${weight.toFixed(2)} kg`);
+      },
+    };
+
+    // Ejemplo 2: Registra el peso en la consola o en una base de datos (simulado)
+    const WeightLogger = {
+      update: function (weight) {
+        // Aquí se podría enviar el dato a una API o registrar localmente
+        const timestamp = new Date().toLocaleTimeString();
+        console.log(
+          `[Logger] Peso registrado a las ${timestamp}: ${weight.toFixed(2)}`
+        );
+      },
+    };
+
+    /**
+     * 3. Lógica de Captura de Teclado (Simulación de la Báscula)
+     * -----------------------------------------------------------
+     */
+
+    // Inicialización del Publicador
+    const scalePublisher = new WeightPublisher();
+
+    // Suscribir los componentes
+    scalePublisher.subscribe(WeightDisplay);
+    scalePublisher.subscribe(WeightLogger);
+    // También puedes suscribir funciones anónimas
+    scalePublisher.subscribe((weight) => {
+      if (weight > 10) {
+        console.warn("[Aviso] ¡Peso superior a 10 kg! Acción de alerta.");
+      }
+    });
+
+    // Variable para almacenar la entrada de teclado parcial de la báscula
+    let buffer = "";
+
+    // Expresión regular para validar el formato: (cualquier dígito o 0),dígitos
+    // Ejemplo de valores válidos: 123,45 / 0,99 / 5,0
+    const SCALE_PATTERN = /^(\d*|0),\d+$/;
+
+    document.addEventListener("keydown", (event) => {
+      // La báscula envía caracteres individuales seguidos de Enter.
+      console.log(event.key);
+
+      if (event.key === "Enter") {
+        // **FIN DE LECTURA DE LA BÁSCULA**
+        console.log(buffer);
+
+        // 1. Limpiamos el buffer
+        const finalReading = buffer.trim();
+        buffer = ""; // Reseteamos el buffer inmediatamente
+
+        // 2. Validamos el formato
+        if (SCALE_PATTERN.test(finalReading)) {
+          // 3. Si es válido, actualizamos el Publicador
+          scalePublisher.setWeight(finalReading);
+        } else {
+          // Manejo de error si el formato no coincide
+          console.error(
+            `[Scale Input] Lectura de báscula inválida: "${finalReading}". El formato esperado es "X,XX".`
+          );
+        }
+
+        // Prevenimos la acción por defecto de Enter (ej. enviar un formulario)
+        event.preventDefault();
+      } else if (event.key.length === 1) {
+        // **CARACTERES INTERMEDIOS**
+        // Si es un carácter simple (dígito, coma, etc.), lo añadimos al buffer
+        buffer += event.key;
+        console.log(`[Scale Input] Buffer actual: ${buffer}`);
+      }
+      // Para otros eventos (Ctrl, Shift, F5, etc.) no hacemos nada.
+    });
+  </script>
+</html>
