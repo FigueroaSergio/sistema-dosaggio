@@ -1,157 +1,908 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Báscula de Recetas Guiadas</title>
+    <!-- Tailwind CSS CDN for modern styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Custom styles for the weight display */
+      .weight-main-display {
+        font-family: "Inter", sans-serif;
+        font-size: 4rem;
+        font-weight: 800;
+      }
+      /* Style for the table row currently being worked on */
+      .current-ingredient-row {
+        background-color: #f0fdf4 !important; /* Green 50 */
+        border-left: 5px solid #059669; /* Green 600 */
+      }
+      /* Style for completed row */
+      .completed-ingredient-row {
+        background-color: #f0f9ff; /* Sky 50 */
+      }
+      /* Smooth transitions for better visual feedback */
+      progress {
+        transition: width 0.3s ease-in-out;
+        height: 10px;
+        border-radius: 5px;
+        overflow: hidden;
+        background-color: #e5e7eb; /* Gray 200 */
+      }
+      /* Base styles for progress bar track */
+      progress::-webkit-progress-bar {
+        background-color: #e5e7eb;
+      }
+      /* Progress value color defined by JS */
+      progress::-webkit-progress-value {
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+      progress::-moz-progress-bar {
+        border-radius: 5px;
+        transition: background-color 0.3s;
+      }
+
+      /* Color classes for dynamic styling */
+      .progress-color-black {
+        color: #1f2937;
+      } /* Gray 800 */
+      .progress-color-blue {
+        color: #3b82f6;
+      } /* Blue 500 */
+      .progress-color-green {
+        color: #10b981;
+      } /* Emerald 500 */
+      .progress-color-yellow {
+        color: #f59e0b;
+      } /* Amber 500 */
+      .progress-color-orange {
+        color: #f97316;
+      } /* Orange 600 */
+      .progress-color-red {
+        color: #ef4444;
+      } /* Red 500 */
+
+      /* Utility for setting bar color via CSS variables */
+      .bar-color-blue::-webkit-progress-value {
+        background-color: #3b82f6;
+      }
+      .bar-color-green::-webkit-progress-value {
+        background-color: #10b981;
+      }
+      .bar-color-yellow::-webkit-progress-value {
+        background-color: #f59e0b;
+      }
+      .bar-color-orange::-webkit-progress-value {
+        background-color: #f97316;
+      }
+      .bar-color-red::-webkit-progress-value {
+        background-color: #ef4444;
+      }
+      .bar-color-black::-webkit-progress-value {
+        background-color: #1f2937;
+      }
+
+      .bar-color-blue::-moz-progress-bar {
+        background-color: #3b82f6;
+      }
+      .bar-color-green::-moz-progress-bar {
+        background-color: #10b981;
+      }
+      .bar-color-yellow::-moz-progress-bar {
+        background-color: #f59e0b;
+      }
+      .bar-color-orange::-moz-progress-bar {
+        background-color: #f97316;
+      }
+      .bar-color-red::-moz-progress-bar {
+        background-color: #ef4444;
+      }
+      .bar-color-black::-moz-progress-bar {
+        background-color: #1f2937;
+      }
+    </style>
   </head>
-  <body>
-    <h1>Simulación de Lectura de Báscula (Patrón Observer)</h1>
-    <p>Simula que la báscula escribe: **5,34** luego presiona **Enter**.</p>
-    <p>Intenta escribir: **12,50** y luego **Enter**.</p>
-    <hr />
-    <h2>Peso Actual: <span id="weight-value">Esperando lectura...</span></h2>
-    <p>
-      Revisa la consola (F12) para ver las actualizaciones de **Logger** y
-      **Publisher**.
-    </p>
-  </body>
-  <script>
-    class WeightPublisher {
-      constructor() {
-        this.weight = null; // El valor actual del peso
-        this.subscribers = []; // Lista de funciones o objetos suscriptores
+  <body class="bg-gray-50 min-h-screen p-4 md:p-8 font-sans">
+    <div class="max-w-4xl mx-auto">
+      <header class="text-center mb-8">
+        <h1 class="text-4xl font-extrabold text-gray-900">
+          Sistema de Dosificación Inteligente
+        </h1>
+        <p class="text-gray-500">
+          Guía paso a paso para tus recetas.
+          <span class="font-bold">Entrada de peso en Kg.</span>
+        </p>
+      </header>
+
+      <!-- SECCIÓN 1: CONTROL Y ESTADO PRINCIPAL -->
+      <div
+        id="main-status-card"
+        class="bg-white shadow-xl rounded-xl p-6 mb-8 border border-teal-200"
+      >
+        <h2 class="text-lg font-semibold text-gray-700 mb-3">
+          Peso Neto Agregado
+        </h2>
+
+        <!-- DISPLAY PRINCIPAL -->
+        <div class="flex flex-col items-center justify-center py-4">
+          <!-- Main Weight Display -->
+          <div class="flex items-end">
+            <span
+              id="added-weight-display"
+              class="weight-main-display text-gray-800 transition-colors duration-300"
+              >0.00</span
+            >
+            <span class="text-3xl text-gray-500 ml-2 mb-2">g</span>
+          </div>
+
+          <!-- Small Instruction/Target Text -->
+          <p
+            id="target-weight-display"
+            class="text-center text-sm text-gray-400 font-semibold mt-[-10px]"
+          >
+            Peso Neto (Báscula Bruta - Tara Anterior)
+          </p>
+
+          <!-- Current Ingredient Progress Bar -->
+          <div
+            id="main-progress-bar-container"
+            class="w-full mt-4"
+            style="display: none"
+          >
+            <progress
+              id="main-progress-bar"
+              value="0"
+              max="100"
+              class="w-full bar-color-black"
+            ></progress>
+            <p
+              id="main-progress-percent"
+              class="text-sm font-medium text-gray-500 text-center mt-1 progress-color-black"
+            >
+              0% Versado
+            </p>
+          </div>
+        </div>
+
+        <!-- INSTRUCCIÓN ACTUAL -->
+        <div class="bg-teal-50 border-l-4 border-teal-500 p-4 mt-4 rounded-md">
+          <p id="current-instruction" class="text-teal-800 font-medium">
+            👋 Selecciona una receta para empezar la preparación.
+          </p>
+        </div>
+
+        <!-- ACCIONES DE PREPARACIÓN -->
+        <div id="prep-actions" class="flex gap-4 mt-6 justify-center">
+          <button
+            id="zero-btn"
+            class="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition duration-150 w-full max-w-xs sm:max-w-[150px]"
+          >
+            Poner a Cero
+          </button>
+          <button
+            id="next-ingredient-btn"
+            class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+            style="display: none"
+          >
+            Siguiente Ingrediente
+          </button>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 2: SELECCIÓN DE RECETAS Y PESOS DE REFERENCIA -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <!-- CARD 1: SELECCIÓN -->
+        <div class="lg:col-span-1 bg-white shadow-lg rounded-xl p-6">
+          <h3 class="text-xl font-bold text-gray-800 mb-4">Receta</h3>
+          <select
+            id="recipe-selector"
+            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150"
+          >
+            <option value="">-- Seleccione una Receta --</option>
+          </select>
+          <button
+            id="start-prep-btn"
+            class="w-full mt-4 p-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
+          >
+            Iniciar
+          </button>
+        </div>
+
+        <!-- CARD 2 & 3: ESTADO DE PESOS DE REFERENCIA -->
+        <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-gray-100 p-4 rounded-lg">
+            <p class="text-sm font-medium text-gray-500">Peso Bruto (Kg)</p>
+            <span id="raw-weight" class="text-2xl font-bold text-gray-800"
+              >0.00kg</span
+            >
+          </div>
+          <div class="bg-gray-100 p-4 rounded-lg">
+            <p class="text-sm font-medium text-gray-500">Tara (Contenedor)</p>
+            <span id="tare-weight" class="text-2xl font-bold text-gray-800"
+              >0.00g</span
+            >
+          </div>
+          <div class="bg-gray-100 p-4 rounded-lg">
+            <p class="text-sm font-medium text-gray-500">
+              Acumulado (Anterior)
+            </p>
+            <span
+              id="accumulated-weight"
+              class="text-2xl font-bold text-gray-800"
+              >0.00g</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <!-- SECCIÓN 3: TABLA DE RECETA Y PROGRESO -->
+      <div class="bg-white shadow-lg rounded-xl p-6">
+        <h2 id="prep-title" class="text-2xl font-bold text-gray-800 mb-4">
+          Detalle de la Receta
+        </h2>
+
+        <div class="overflow-x-auto">
+          <table id="recipe-table" class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+              <tr>
+                <th
+                  scope="col"
+                  class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Ingrediente
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Requerido (g)
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  Peso Añadido (g)
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
+                >
+                  Progreso
+                </th>
+                <th
+                  scope="col"
+                  class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                >
+                  % Versado
+                </th>
+              </tr>
+            </thead>
+            <tbody
+              id="recipe-table-body"
+              class="bg-white divide-y divide-gray-200"
+            >
+              <!-- Filas de ingredientes se insertarán aquí -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CÓDIGO JAVASCRIPT -->
+    <script>
+      // =================================================================
+      // 1. CLASE WEIGHTPUBLISHER (Publicador - Fuente de datos de la báscula)
+      // =================================================================
+
+      class WeightPublisher {
+        constructor() {
+          this.weightKg = 0; // Peso bruto en Kilogramos (entrada simulada)
+          this.weightGrams = 0; // Peso bruto en Gramos (usado internamente)
+          this.subscribers = [];
+        }
+
+        subscribe(subscriber) {
+          if (typeof subscriber.update === "function") {
+            this.subscribers.push(subscriber);
+          }
+        }
+
+        // Establece el peso bruto leído de la báscula (asume entrada en Kg)
+        setWeight(newWeightKgString) {
+          // Entrada: "X,XX" (en Kg). Reemplazamos la coma por punto para JS.
+          const numericWeightKg = parseFloat(
+            newWeightKgString.replace(",", ".")
+          );
+
+          if (!isNaN(numericWeightKg)) {
+            // Convertir Kg a Gramos para la lógica interna
+            const newWeightGrams = numericWeightKg * 1000;
+
+            // Solo actualiza y notifica si el peso ha cambiado significativamente
+            if (Math.abs(this.weightGrams - newWeightGrams) > 0.001) {
+              this.weightKg = numericWeightKg;
+              this.weightGrams = newWeightGrams;
+              this.notify(this.weightGrams);
+            }
+          }
+        }
+
+        notify(weightGrams) {
+          this.subscribers.forEach((subscriber) => {
+            subscriber.update(weightGrams, this.weightKg);
+          });
+        }
       }
 
-      // Método para registrar un nuevo suscriptor
-      subscribe(subscriber) {
-        if (typeof subscriber === "function") {
-          this.subscribers.push({ update: subscriber });
-        } else if (typeof subscriber.update === "function") {
-          this.subscribers.push(subscriber);
-        } else {
-          console.error(
-            "El suscriptor debe ser una función o tener un método 'update'."
+      // =================================================================
+      // 2. CLASE RECIPEMANAGER (Gestor de Recetas - Datos de la aplicación)
+      // =================================================================
+
+      class RecipeManager {
+        constructor() {
+          // Estructura de recetas (todo en gramos)
+          this.recipes = {
+            "Pan Clásico": [
+              { name: "Harina de Trigo", grams: 500 },
+              { name: "Agua", grams: 350 },
+              { name: "Sal", grams: 10 },
+              { name: "Levadura Seca", grams: 5 },
+            ],
+            "Masa de Pizza": [
+              { name: "Harina 00", grams: 300 },
+              { name: "Agua tibia", grams: 200 },
+              { name: "Aceite de Oliva", grams: 15 },
+              { name: "Sal", grams: 5 },
+            ],
+            "Batido de Proteína": [
+              { name: "Leche de Almendras", grams: 250 },
+              { name: "Proteína en polvo", grams: 30 },
+              { name: "Banana", grams: 100 },
+            ],
+          };
+        }
+
+        getRecipe(name) {
+          return this.recipes[name];
+        }
+
+        getRecipeNames() {
+          return Object.keys(this.recipes);
+        }
+      }
+
+      // =================================================================
+      // 3. CLASE RECIPEPREPCONTROLLER (Controlador - Lógica de Preparación)
+      // =================================================================
+
+      class RecipePrepController {
+        constructor(recipeManager) {
+          this.recipeManager = recipeManager;
+          this.recipe = null;
+          this.currentIngredientIndex = -2; // -2: INACTIVO, -1: TARA, 0+: Ingredientes
+          this.tareWeight = 0; // Peso del contenedor
+          this.accumulatedWeight = 0; // Peso de los ingredientes ya guardados (incluye tara)
+          this.currentWeightGrams = 0; // Peso bruto leído de la báscula (en gramos)
+          this.displayManager = new PrepDisplayManager(); // Maneja la actualización del DOM
+        }
+
+        // Método requerido por el WeightPublisher (Observer)
+        update(rawWeightGrams, rawWeightKg) {
+          this.currentWeightGrams = rawWeightGrams;
+
+          // Actualiza siempre los pesos de referencia
+          this.displayManager.updateStatus(
+            rawWeightKg,
+            this.tareWeight,
+            this.accumulatedWeight
+          );
+
+          if (this.currentIngredientIndex === -1) {
+            // Modo TARA: el display principal solo muestra el peso bruto
+            this.displayManager.updateMainWeightDisplay(
+              this.currentWeightGrams,
+              "Pesar Contenedor",
+              null,
+              0
+            );
+            this.displayManager.setZeroButtonEnabled(true);
+          } else if (this.currentIngredientIndex >= 0) {
+            // Modo Ingrediente
+            this.updateIngredientProgress();
+            this.displayManager.setZeroButtonEnabled(false);
+          } else {
+            // Modo Inactivo/Finalizado: muestra el peso bruto
+            this.displayManager.updateMainWeightDisplay(
+              this.currentWeightGrams,
+              null,
+              null,
+              0
+            );
+            this.displayManager.setZeroButtonEnabled(true);
+          }
+        }
+
+        startPreparation(recipeName) {
+          this.recipe = this.recipeManager.getRecipe(recipeName);
+          if (!this.recipe) return;
+
+          this.currentIngredientIndex = -1; // Inicia en modo TARA
+          this.tareWeight = 0;
+          this.accumulatedWeight = 0;
+          this.displayManager.renderRecipe(this.recipe, recipeName);
+          this.displayManager.setNextButtonVisibility(true); // Mostrar botón Siguiente
+          this.displayManager.setNextButtonText(false); // Siempre "Siguiente" al inicio
+          this.displayManager.showInstructions(
+            "Paso 1: Coloca el contenedor vacío en la báscula y presiona **SIGUIENTE** para establecer la Tara."
+          );
+
+          // **CORRECCIÓN:** Habilitar el botón Poner a Cero inmediatamente al entrar en modo TARA.
+          this.displayManager.setZeroButtonEnabled(true);
+
+          // Forzar la actualización del display principal a 0.00g (antes de recibir el primer peso de la báscula)
+          this.displayManager.updateMainWeightDisplay(
+            0.0,
+            "Pesar Contenedor",
+            null,
+            0
+          );
+        }
+
+        /**
+         * Avanza al siguiente paso (Tara, Ingrediente N, Finalizar).
+         * En cada avance, acumula el peso actual.
+         */
+        nextStep() {
+          if (!this.recipe) return;
+
+          // 1. LÓGICA DE ACUMULACIÓN (Tarar implícitamente)
+
+          // Si estamos en TARA (-1) o en un INGREDIENTE (>=0), el peso bruto actual
+          // se convierte en el nuevo peso acumulado (la nueva tara para el siguiente paso).
+          if (this.currentIngredientIndex >= -1) {
+            this.accumulatedWeight = this.currentWeightGrams;
+          }
+
+          // Si venimos del paso TARA (-1), establecemos el tareWeight inicial para referencia.
+          if (this.currentIngredientIndex === -1) {
+            this.tareWeight = this.currentWeightGrams;
+          }
+
+          // 2. AVANCE DE ÍNDICE Y ACCIONES DE UI
+
+          // Si estamos en un ingrediente, marcamos la fila como completada.
+          if (this.currentIngredientIndex >= 0) {
+            this.displayManager.markRowAsCompleted(this.currentIngredientIndex);
+          }
+
+          this.currentIngredientIndex++; // Avanzar al siguiente paso (0, 1, 2, ...)
+
+          // 3. VERIFICACIÓN DE FIN DE RECETA
+          if (this.currentIngredientIndex >= this.recipe.length) {
+            this.currentIngredientIndex = -2; // Marca como completado/inactivo
+            const netTotal = this.accumulatedWeight - this.tareWeight;
+            this.displayManager.showInstructions(
+              `✅ ¡Receta Completada! Peso neto total: **${netTotal.toFixed(
+                2
+              )}g**.`
+            );
+            this.displayManager.updateCurrentIngredient(null);
+            this.displayManager.resetUI(); // Reset UI
+            return;
+          }
+
+          // 4. PREPARAR EL SIGUIENTE INGREDIENTE
+
+          const ingredient = this.recipe[this.currentIngredientIndex];
+
+          // Actualizar texto del botón a "Finalizar" si es el último
+          const isFinal =
+            this.currentIngredientIndex === this.recipe.length - 1;
+          this.displayManager.setNextButtonText(isFinal);
+
+          // Guía al siguiente ingrediente
+          this.displayManager.showInstructions(
+            `Paso ${this.currentIngredientIndex + 2}: Añadir **${
+              ingredient.name
+            }** (requerido: ${ingredient.grams}g).`
+          );
+          this.displayManager.updateCurrentIngredient(
+            this.currentIngredientIndex
+          );
+
+          // FIX: Forzar una actualización de la UI inmediatamente después de tarar/cambiar de ingrediente.
+          // Usamos el peso actual en Kg (0.00kg si no ha llegado una lectura real) para la actualización.
+          this.update(this.currentWeightGrams, scalePublisher.weightKg);
+        }
+
+        // Actualiza el progreso del ingrediente actual
+        updateIngredientProgress() {
+          const ingredient = this.recipe[this.currentIngredientIndex];
+          if (!ingredient) return;
+
+          // Peso Neto Añadido = Peso Bruto (Báscula) - Peso Acumulado de todo lo anterior
+          const addedGrams = this.currentWeightGrams - this.accumulatedWeight;
+
+          // NO CLAMPING: Permitimos que addedGrams sea negativo (si se quita peso) o positivo (si se añade)
+          const requiredGrams = ingredient.grams;
+
+          // Calculamos el porcentaje, permitiendo valores > 100
+          const percentage = (addedGrams / requiredGrams) * 100;
+
+          // Actualizar Display Principal (peso, nombre, requerido y progreso)
+          this.displayManager.updateMainWeightDisplay(
+            addedGrams, // Puede ser negativo
+            ingredient.name,
+            requiredGrams,
+            percentage
+          );
+
+          // Actualizar Tabla
+          this.displayManager.updateTableProgress(
+            this.currentIngredientIndex,
+            addedGrams,
+            requiredGrams,
+            percentage
           );
         }
       }
 
-      // Método para desregistrar un suscriptor (opcional)
-      unsubscribe(subscriber) {
-        this.subscribers = this.subscribers.filter(
-          (sub) => sub.update !== subscriber.update
-        );
-      }
+      // =================================================================
+      // 4. CLASE PREPDISPLAYMANAGER (Manejo del DOM y UI)
+      // =================================================================
 
-      // Método principal para actualizar el peso y notificar
-      setWeight(newWeight) {
-        // Formato esperado: X,XX. Reemplazamos la coma por punto para trabajar con números en JS
-        const numericWeight = parseFloat(newWeight.replace(",", "."));
+      class PrepDisplayManager {
+        // Función auxiliar para obtener la clase de color basada en el porcentaje
+        getProgressBarColorClass(percentage) {
+          let colorClass;
+          if (percentage < 0) {
+            colorClass = "bar-color-black";
+          } else if (percentage < 50) {
+            colorClass = "bar-color-black"; // 0-50% -> Negro
+          } else if (percentage < 95) {
+            colorClass = "bar-color-blue"; // 50-95% -> Azul
+          } else if (percentage <= 101) {
+            colorClass = "bar-color-green"; // 95-101% -> Verde (Zona óptima)
+          } else if (percentage < 110) {
+            colorClass = "bar-color-yellow"; // 101-110% -> Amarillo
+          } else if (percentage < 125) {
+            colorClass = "bar-color-orange"; // 110-125% -> Naranja
+          } else {
+            // 125% o más
+            colorClass = "bar-color-red"; // 125+ -> Rojo
+          }
+          return colorClass;
+        }
 
-        if (!isNaN(numericWeight)) {
-          this.weight = numericWeight;
-          console.log(`[Publisher] Nuevo peso detectado: ${this.weight} kg`);
-          this.notify(this.weight);
-        } else {
-          console.error(
-            `[Publisher] El valor "${newWeight}" no es un peso válido.`
+        getWeightTextColorClass(percentage) {
+          const baseClass =
+            "weight-main-display transition-colors duration-300";
+          let colorClass;
+          if (percentage < 0) {
+            colorClass = "text-gray-500";
+          } else if (percentage < 50) {
+            colorClass = "text-gray-800"; // 0-50% -> Negro
+          } else if (percentage < 95) {
+            colorClass = "text-blue-600"; // 50-95% -> Azul
+          } else if (percentage <= 101) {
+            colorClass = "text-green-600"; // 95-101% -> Verde
+          } else if (percentage < 110) {
+            colorClass = "text-amber-500"; // 101-110% -> Amarillo
+          } else if (percentage < 125) {
+            colorClass = "text-orange-600"; // 110-125% -> Naranja
+          } else {
+            // 125% o más
+            colorClass = "text-red-600"; // 125+ -> Rojo
+          }
+          return baseClass + " " + colorClass;
+        }
+
+        // Actualiza el gran display central, la instrucción pequeña y la barra de progreso principal
+        updateMainWeightDisplay(
+          addedGrams,
+          ingredientName,
+          requiredGrams,
+          percentage
+        ) {
+          const addedDisplay = document.getElementById("added-weight-display");
+          const targetDisplay = document.getElementById(
+            "target-weight-display"
+          );
+          const progressBarContainer = document.getElementById(
+            "main-progress-bar-container"
+          );
+          const progressBar = document.getElementById("main-progress-bar");
+          const percentText = document.getElementById("main-progress-percent");
+
+          // Actualizar Display de Peso
+          addedDisplay.textContent = addedGrams.toFixed(2);
+
+          // 1. Mostrar/Ocultar barra de progreso
+          if (
+            ingredientName === "Pesar Contenedor" ||
+            ingredientName === null
+          ) {
+            progressBarContainer.style.display = "none";
+            addedDisplay.className =
+              "weight-main-display text-gray-800 transition-colors duration-300";
+          } else {
+            // Modo Ingrediente
+            progressBarContainer.style.display = "block";
+
+            const barColorClass = this.getProgressBarColorClass(percentage);
+            const textColorClass = this.getWeightTextColorClass(percentage);
+
+            // Aplicar clases de color
+            addedDisplay.className = textColorClass;
+            progressBar.className = `w-full ${barColorClass}`;
+            percentText.className = `text-sm font-medium text-center mt-1 ${barColorClass.replace(
+              "bar-",
+              "progress-"
+            )}`;
+
+            // La barra de progreso solo puede ir de 0 a 100, así que la limitamos visualmente
+            progressBar.value = Math.min(100, Math.max(0, percentage));
+            percentText.textContent = `${percentage.toFixed(0)}% Versado`;
+          }
+
+          // 2. Actualizar texto de objetivo
+          if (ingredientName === "Pesar Contenedor") {
+            targetDisplay.innerHTML =
+              '<span class="text-gray-800">Pesar Contenedor</span>';
+          } else if (ingredientName !== null && requiredGrams !== null) {
+            // Modo Ingrediente
+            targetDisplay.innerHTML = `<span class="text-lg font-bold text-gray-800">${ingredientName}</span> 
+                                               <span class="text-sm font-semibold text-gray-500">| ${requiredGrams.toFixed(
+                                                 2
+                                               )}g Requerido</span>`;
+          } else {
+            // Estado inicial o finalizado/inactivo
+            targetDisplay.innerHTML =
+              "Peso Neto (Báscula Bruta - Tara Anterior)";
+            percentText.textContent = "0% Versado";
+          }
+        }
+
+        // Renderiza la tabla de ingredientes de la receta
+        renderRecipe(recipe, name) {
+          document.getElementById("prep-title").textContent = `Receta: ${name}`;
+          this.setNextButtonVisibility(true);
+
+          const tbody = document.getElementById("recipe-table-body");
+          tbody.innerHTML = "";
+
+          recipe.forEach((item, index) => {
+            const row = tbody.insertRow();
+            row.id = `ingredient-row-${index}`;
+            row.className = "hover:bg-gray-50 transition duration-150"; // Tailwind class
+            row.innerHTML = `
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${item.grams}g</td>
+                        <td id="added-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-semibold">0.00g</td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            <progress id="progress-${index}" value="0" max="100" class="w-full bar-color-black"></progress>
+                        </td>
+                        <td id="percent-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 progress-color-black">0%</td>
+                    `;
+          });
+
+          this.updateCurrentIngredient(-1); // Inicializa a -1 (modo TARA)
+        }
+
+        // Muestra la instrucción actual
+        showInstructions(message) {
+          document.getElementById("current-instruction").innerHTML = message;
+        }
+
+        // Actualiza la visualización de los pesos de referencia
+        updateStatus(rawWeightKg, tareWeight, accumulatedWeight) {
+          document.getElementById("raw-weight").textContent =
+            rawWeightKg.toFixed(2) + "kg";
+          document.getElementById("tare-weight").textContent =
+            tareWeight.toFixed(2) + "g";
+          document.getElementById("accumulated-weight").textContent =
+            accumulatedWeight.toFixed(2) + "g";
+        }
+
+        // Resalta la fila del ingrediente actual
+        updateCurrentIngredient(index) {
+          // Limpiar resaltado anterior
+          document.querySelectorAll("#recipe-table-body tr").forEach((row) => {
+            row.classList.remove("current-ingredient-row");
+          });
+
+          // Aplicar resaltado al ingrediente actual
+          if (index >= 0) {
+            const currentRow = document.getElementById(
+              `ingredient-row-${index}`
+            );
+            if (currentRow) {
+              currentRow.classList.add("current-ingredient-row");
+            }
+          }
+        }
+
+        // Marca una fila como permanentemente completada
+        markRowAsCompleted(index) {
+          const row = document.getElementById(`ingredient-row-${index}`);
+          if (row) {
+            row.classList.remove("current-ingredient-row");
+            row.classList.add("completed-ingredient-row");
+          }
+        }
+
+        // Actualiza la fila de la tabla para el ingrediente que se está pesando
+        updateTableProgress(index, addedGrams, requiredGrams, percentage) {
+          const row = document.getElementById(`ingredient-row-${index}`);
+          if (row) {
+            const barColorClass = this.getProgressBarColorClass(percentage);
+
+            const addedCell = document.getElementById(`added-${index}`);
+            const progressElement = document.getElementById(
+              `progress-${index}`
+            );
+            const percentElement = document.getElementById(`percent-${index}`);
+
+            addedCell.textContent = addedGrams.toFixed(2) + "g";
+
+            // La barra de progreso solo va de 0 a 100
+            progressElement.value = Math.min(100, Math.max(0, percentage));
+            progressElement.className = `w-full ${barColorClass}`;
+
+            percentElement.textContent = percentage.toFixed(0) + "%";
+            percentElement.className = `px-4 py-3 whitespace-nowrap text-sm ${barColorClass.replace(
+              "bar-",
+              "progress-"
+            )}`;
+          }
+        }
+
+        // Muestra/oculta el botón de Siguiente Ingrediente
+        setNextButtonVisibility(isVisible) {
+          document.getElementById("next-ingredient-btn").style.display =
+            isVisible ? "block" : "none";
+        }
+
+        // Habilita/deshabilita el botón Poner a Cero
+        setZeroButtonEnabled(isEnabled) {
+          document.getElementById("zero-btn").disabled = !isEnabled;
+          const button = document.getElementById("zero-btn");
+          if (isEnabled) {
+            button.classList.remove("opacity-50", "cursor-not-allowed");
+            button.classList.add("bg-gray-500", "hover:bg-gray-600");
+          } else {
+            button.classList.add("opacity-50", "cursor-not-allowed");
+            button.classList.remove("bg-gray-500", "hover:bg-gray-600");
+          }
+        }
+
+        // Cambia el texto del botón Siguiente/Finalizar
+        setNextButtonText(isFinalIngredient) {
+          const button = document.getElementById("next-ingredient-btn");
+          button.textContent = isFinalIngredient
+            ? "Finalizar Receta"
+            : "Siguiente Ingrediente";
+
+          // Highlight finalize button
+          if (isFinalIngredient) {
+            button.classList.remove("bg-green-600", "hover:bg-green-700");
+            button.classList.add("bg-orange-500", "hover:bg-orange-600");
+          } else {
+            button.classList.remove("bg-orange-500", "hover:bg-orange-600");
+            button.classList.add("bg-green-600", "hover:bg-green-700");
+          }
+        }
+
+        // Función para resetear el estado de la UI al finalizar
+        resetUI() {
+          document.getElementById(
+            "prep-title"
+          ).textContent = `Detalle de la Receta`;
+          this.setNextButtonVisibility(false);
+          document.getElementById("main-progress-bar-container").style.display =
+            "none";
+          document.getElementById("recipe-table-body").innerHTML = ""; // Clear table
+
+          // Reset reference weights
+          document.getElementById("raw-weight").textContent = "0.00kg";
+          document.getElementById("tare-weight").textContent = "0.00g";
+          document.getElementById("accumulated-weight").textContent = "0.00g";
+
+          // Importante: Reiniciar el display principal a 0.00 y el mensaje inicial
+          this.updateMainWeightDisplay(0.0, null, null, 0);
+          this.showInstructions(
+            "👋 Selecciona una receta para empezar la preparación."
           );
         }
       }
 
-      // Método para notificar a todos los suscriptores
-      notify(weight) {
-        this.subscribers.forEach((subscriber) => {
-          // El suscriptor recibe el nuevo valor para actuar
-          subscriber.update(weight);
+      // =================================================================
+      // 5. LÓGICA DE INICIALIZACIÓN Y TECLADO (MAIN)
+      // =================================================================
+
+      const scalePublisher = new WeightPublisher();
+      const recipeManager = new RecipeManager();
+      const recipePrepController = new RecipePrepController(recipeManager);
+
+      // Suscribir el controlador de preparación al publicador de la báscula
+      scalePublisher.subscribe(recipePrepController);
+
+      // --- Lógica de Captura de Teclado (Simulación de la Báscula en Kg) ---
+      let buffer = "";
+      // El patrón acepta 0 o más dígitos, seguido de una coma, seguido de uno o más dígitos
+      const SCALE_PATTERN = /^(\d*|0),\d+$/;
+
+      document.addEventListener("keydown", (event) => {
+        // Prevenimos que la tecla Enter haga algo más (como enviar un formulario)
+        if (event.key === "Enter") {
+          const finalReading = buffer.trim();
+          buffer = "";
+
+          if (finalReading && SCALE_PATTERN.test(finalReading)) {
+            // El publicador notifica a todos los suscriptores. La conversión a gramos se hace dentro.
+            scalePublisher.setWeight(finalReading);
+          } else {
+            console.warn(
+              `[Scale Input] Lectura de báscula inválida o vacía: "${finalReading}". El formato esperado es "X,XX" (en Kg).`
+            );
+          }
+
+          event.preventDefault();
+        } else if (
+          event.key.length === 1 &&
+          !event.ctrlKey &&
+          !event.altKey &&
+          !event.metaKey
+        ) {
+          // Captura caracteres individuales que vienen de la báscula
+          buffer += event.key;
+        }
+      });
+
+      // --- Lógica de Interfaz y Carga Inicial ---
+      document.addEventListener("DOMContentLoaded", () => {
+        // Llenar el selector de recetas
+        const selector = document.getElementById("recipe-selector");
+        recipeManager.getRecipeNames().forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          selector.appendChild(option);
         });
-      }
-    }
 
-    /**
-     * 2. Suscriptores (Ejemplos)
-     * --------------------------
-     */
+        // Asignar eventos de botones
+        document
+          .getElementById("start-prep-btn")
+          .addEventListener("click", () => {
+            const selectedRecipe = selector.value;
+            if (selectedRecipe) {
+              recipePrepController.startPreparation(selectedRecipe);
+            } else {
+              // Feedback visual en lugar de alert
+              document.getElementById(
+                "current-instruction"
+              ).innerHTML = `<span class="text-red-600">⚠️ Por favor, selecciona una receta válida para comenzar.</span>`;
+            }
+          });
 
-    // Ejemplo 1: Muestra el peso en una interfaz (simulado)
-    const WeightDisplay = {
-      update: function (weight) {
-        const displayElement = document.getElementById("weight-value");
-        if (displayElement) {
-          displayElement.textContent = weight.toFixed(2) + " kg";
-        }
-        console.log(`[Display] Actualizando UI: ${weight.toFixed(2)} kg`);
-      },
-    };
+        document
+          .getElementById("next-ingredient-btn")
+          .addEventListener("click", () => {
+            recipePrepController.nextStep();
+          });
 
-    // Ejemplo 2: Registra el peso en la consola o en una base de datos (simulado)
-    const WeightLogger = {
-      update: function (weight) {
-        // Aquí se podría enviar el dato a una API o registrar localmente
-        const timestamp = new Date().toLocaleTimeString();
-        console.log(
-          `[Logger] Peso registrado a las ${timestamp}: ${weight.toFixed(2)}`
-        );
-      },
-    };
+        document.getElementById("zero-btn").addEventListener("click", () => {
+          // Simula que la báscula lee "0,00" Kg
+          scalePublisher.setWeight("0,00");
+          // La UI se actualizará a través del ciclo Observer/Publisher
+        });
 
-    /**
-     * 3. Lógica de Captura de Teclado (Simulación de la Báscula)
-     * -----------------------------------------------------------
-     */
-
-    // Inicialización del Publicador
-    const scalePublisher = new WeightPublisher();
-
-    // Suscribir los componentes
-    scalePublisher.subscribe(WeightDisplay);
-    scalePublisher.subscribe(WeightLogger);
-    // También puedes suscribir funciones anónimas
-    scalePublisher.subscribe((weight) => {
-      if (weight > 10) {
-        console.warn("[Aviso] ¡Peso superior a 10 kg! Acción de alerta.");
-      }
-    });
-
-    // Variable para almacenar la entrada de teclado parcial de la báscula
-    let buffer = "";
-
-    // Expresión regular para validar el formato: (cualquier dígito o 0),dígitos
-    // Ejemplo de valores válidos: 123,45 / 0,99 / 5,0
-    const SCALE_PATTERN = /^(\d*|0),\d+$/;
-
-    document.addEventListener("keydown", (event) => {
-      // La báscula envía caracteres individuales seguidos de Enter.
-      console.log(event.key);
-
-      if (event.key === "Enter") {
-        // **FIN DE LECTURA DE LA BÁSCULA**
-        console.log(buffer);
-
-        // 1. Limpiamos el buffer
-        const finalReading = buffer.trim();
-        buffer = ""; // Reseteamos el buffer inmediatamente
-
-        // 2. Validamos el formato
-        if (SCALE_PATTERN.test(finalReading)) {
-          // 3. Si es válido, actualizamos el Publicador
-          scalePublisher.setWeight(finalReading);
-        } else {
-          // Manejo de error si el formato no coincide
-          console.error(
-            `[Scale Input] Lectura de báscula inválida: "${finalReading}". El formato esperado es "X,XX".`
-          );
-        }
-
-        // Prevenimos la acción por defecto de Enter (ej. enviar un formulario)
-        event.preventDefault();
-      } else if (event.key.length === 1) {
-        // **CARACTERES INTERMEDIOS**
-        // Si es un carácter simple (dígito, coma, etc.), lo añadimos al buffer
-        buffer += event.key;
-        console.log(`[Scale Input] Buffer actual: ${buffer}`);
-      }
-      // Para otros eventos (Ctrl, Shift, F5, etc.) no hacemos nada.
-    });
-  </script>
+        // Inicializar botón de Siguiente Ingrediente oculto
+        recipePrepController.displayManager.setNextButtonVisibility(false);
+        recipePrepController.displayManager.setZeroButtonEnabled(true);
+      });
+    </script>
+  </body>
 </html>
