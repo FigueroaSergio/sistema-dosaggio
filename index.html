@@ -30,6 +30,11 @@
         overflow: hidden;
         background-color: #e5e7eb; /* Gray 200 */
       }
+      /* Make the main progress bar taller for better visibility */
+      #main-progress-bar {
+        height: 18px; /* increased height */
+        border-radius: 8px;
+      }
       /* Base styles for progress bar track */
       progress::-webkit-progress-bar {
         background-color: #e5e7eb;
@@ -220,23 +225,15 @@
 
         <!-- CARD 2 & 3: ESTADO DE PESOS DE REFERENCIA -->
         <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div class="bg-gray-100 p-4 rounded-lg">
+          <div class="bg-gray-100 p-4 rounded-lg sm:col-span-2">
             <p class="text-sm font-medium text-gray-500">Peso Lordo (Kg)</p>
-            <span id="raw-weight" class="text-2xl font-bold text-gray-800"
+            <span id="raw-weight" class="text-4xl font-extrabold text-gray-800"
               >0.00 g</span
             >
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
             <p class="text-sm font-medium text-gray-500">Tara (Contenitore)</p>
             <span id="tare-weight" class="text-2xl font-bold text-gray-800"
-              >0.00g</span
-            >
-          </div>
-          <div class="bg-gray-100 p-4 rounded-lg">
-            <p class="text-sm font-medium text-gray-500">Totale Accumulato</p>
-            <span
-              id="accumulated-weight"
-              class="text-2xl font-bold text-gray-800"
               >0.00g</span
             >
           </div>
@@ -297,10 +294,12 @@
     </div>
 
     <!-- CÓDIGO JAVASCRIPT -->
-    <script>
+    <script type="module">
       // =================================================================
       // 1. CLASE WEIGHTPUBLISHER (Publicador - Fuente de datos de la báscula)
       // =================================================================
+      import  ricette from "./ricette.json"  with { type: "json" };
+      console.log(ricette);
 
       class WeightPublisher {
         constructor() {
@@ -360,25 +359,7 @@
       class RecipeManager {
         constructor() {
           // Estructura de recetas (todo en gramos)
-          this.recipes = {
-            "Pan Clásico": [
-              { name: "Harina de Trigo", grams: 500 },
-              { name: "Agua", grams: 350 },
-              { name: "Sal", grams: 10 },
-              { name: "Levadura Seca", grams: 5 },
-            ],
-            "Masa de Pizza": [
-              { name: "Harina 00", grams: 300 },
-              { name: "Agua tibia", grams: 200 },
-              { name: "Aceite de Oliva", grams: 15 },
-              { name: "Sal", grams: 5 },
-            ],
-            "Batido de Proteína": [
-              { name: "Leche de Almendras", grams: 250 },
-              { name: "Proteína en polvo", grams: 30 },
-              { name: "Banana", grams: 100 },
-            ],
-          };
+          this.recipes = ricette;
         }
 
         getRecipe(name) {
@@ -463,7 +444,7 @@
           this.displayManager.setNextButtonVisibility(true); // Mostrar botón Siguiente
           this.displayManager.setNextButtonText(false, true); // Mostrare "Tarare" nel primo passo (TARA)
           this.displayManager.showInstructions(
-            "Passo 1: Metti il contenitore vuoto sulla bilancia e premi **SUCCESSIVO** per impostare la tara."
+            "Passo 1: Metti il contenitore vuoto sulla bilancia e premi <strong>SUCCESSIVO</strong> per impostare la tara."
           );
 
           // **CORRECCIÓN:** Habilitar el botón Poner a Cero inmediatamente al entrar en modo TARA.
@@ -866,13 +847,11 @@
         }
 
         // Actualiza la visualización de los pesos de referencia
-        updateStatus(rawWeightKg, tareWeight, accumulatedWeight) {
+        updateStatus(rawWeightKg, tareWeight) {
           document.getElementById("raw-weight").textContent =
             rawWeightKg.toFixed(2) + "g";
           document.getElementById("tare-weight").textContent =
             tareWeight.toFixed(2) + "g";
-          document.getElementById("accumulated-weight").textContent =
-            accumulatedWeight.toFixed(2) + "g";
         }
 
         // Resalta la fila del ingrediente actual
@@ -1001,7 +980,6 @@
           // Reset reference weights
           document.getElementById("raw-weight").textContent = "0.00 g";
           document.getElementById("tare-weight").textContent = "0.00 g";
-          document.getElementById("accumulated-weight").textContent = "0.00 g";
 
           // Importante: Reiniciar el display principal a 0.00 y el mensaje inicial
           this.updateMainWeightDisplay(0.0, null, null, 0);

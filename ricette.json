@@ -1,0 +1,40 @@
+{
+  "1 BASE BIANCA 57900": [
+    { "name": "LATTE", "grams": 4000.0, "tolerance": 0.0 },
+    { "name": "ZUCCHERO", "grams": 550.0, "tolerance": 0.0 },
+    { "name": "GLUCOSIO", "grams": 200.0, "tolerance": 0.0 },
+    { "name": "DESTROSIO", "grams": 150.0, "tolerance": 0.0 },
+    { "name": "BASELATTE 1,5", "grams": 100.0, "tolerance": 0.0 },
+    { "name": "PROTOPLUS", "grams": 200.0, "tolerance": 0.0 },
+    { "name": "GEILAIT", "grams": 150.0, "tolerance": 0.0 },
+    { "name": "PANNA", "grams": 440.0, "tolerance": 0.0 }
+  ],
+  "1000 FOGLIE": [
+    { "name": "BASELATTE 1,5", "grams": 80.0, "tolerance": 0.02 },
+    { "name": "GEILAIT", "grams": 320.0, "tolerance": 0.05 },
+    { "name": "DESTROSIO", "grams": 150.0, "tolerance": 0.05 },
+    { "name": "GLUCOSIO .", "grams": 400.0, "tolerance": 0.05 },
+    { "name": "ZUCCHERO", "grams": 850.0, "tolerance": 0.05 },
+    { "name": "LATTE", "grams": 4450.0, "tolerance": 0.05 },
+    { "name": "MASCARPONE", "grams": 1000.0, "tolerance": 0.05 },
+    { "name": "TUORLO UOVO", "grams": 500.0, "tolerance": 0.05 },
+    { "name": "PASTA VANIGLIA AI", "grams": 250.0, "tolerance": 0.05 }
+  ],
+  "Pan Clásico": [
+    { "name": "Harina de Trigo", "grams": 500 },
+    { "name": "Agua", "grams": 350 },
+    { "name": "Sal", "grams": 10 },
+    { "name": "Levadura Seca", "grams": 5 }
+  ],
+  "Masa de Pizza": [
+    { "name": "Harina 00", "grams": 300 },
+    { "name": "Agua tibia", "grams": 200 },
+    { "name": "Aceite de Oliva", "grams": 15 },
+    { "name": "Sal", "grams": 5 }
+  ],
+  "Batido de Proteína": [
+    { "name": "Leche de Almendras", "grams": 250 },
+    { "name": "Proteína en polvo", "grams": 30 },
+    { "name": "Banana", "grams": 100 }
+  ]
+}
