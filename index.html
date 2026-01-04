@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Báscula de Recetas Guiadas</title>
+    <title>Sistema di Dosaggio Intelligente</title>
     <!-- Tailwind CSS CDN for modern styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -108,11 +108,11 @@
     <div class="max-w-4xl mx-auto">
       <header class="text-center mb-8">
         <h1 class="text-4xl font-extrabold text-gray-900">
-          Sistema de Dosificación Inteligente
+          Sistema di Dosaggio Intelligente
         </h1>
         <p class="text-gray-500">
-          Guía paso a paso para tus recetas.
-          <span class="font-bold">Entrada de peso en Kg.</span>
+          Guida passo-passo per le tue ricette.
+          <span class="font-bold">Inserimento peso in Kg.</span>
         </p>
       </header>
 
@@ -122,7 +122,7 @@
         class="bg-white shadow-xl rounded-xl p-6 mb-8 border border-teal-200"
       >
         <h2 class="text-lg font-semibold text-gray-700 mb-3">
-          Peso Neto Agregado
+          Peso Netto Aggiunto
         </h2>
 
         <!-- DISPLAY PRINCIPAL -->
@@ -142,7 +142,7 @@
             id="target-weight-display"
             class="text-center text-sm text-gray-400 font-semibold mt-[-10px]"
           >
-            Peso Neto (Báscula Bruta - Tara Anterior)
+            Peso netto (Peso lordo - Tara precedente)
           </p>
 
           <!-- Current Ingredient Progress Bar -->
@@ -161,7 +161,7 @@
               id="main-progress-percent"
               class="text-sm font-medium text-gray-500 text-center mt-1 progress-color-black"
             >
-              0% Versado
+              0% Versato
             </p>
           </div>
         </div>
@@ -169,7 +169,7 @@
         <!-- INSTRUCCIÓN ACTUAL -->
         <div class="bg-teal-50 border-l-4 border-teal-500 p-4 mt-4 rounded-md">
           <p id="current-instruction" class="text-teal-800 font-medium">
-            👋 Selecciona una receta para empezar la preparación.
+            👋 Seleziona una ricetta per iniziare la preparazione.
           </p>
         </div>
 
@@ -179,22 +179,22 @@
             id="zero-btn"
             class="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg shadow-md hover:bg-gray-600 transition duration-150 w-full max-w-xs sm:max-w-[150px]"
           >
-            Poner a Cero
+            Azzerare
           </button>
           <button
             id="next-ingredient-btn"
             class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
             style="display: none"
           >
-            Siguiente Ingrediente
+            Ingrediente Successivo
           </button>
           <button
             id="recalc-btn"
             class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
             style="display: none"
-            title="Recalcula las cantidades de los ingredientes restantes para absorber el exceso"
+            title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
           >
-            Recalcular Cantidades
+            Ricalcola Quantità
           </button>
         </div>
       </div>
@@ -203,39 +203,37 @@
       <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         <!-- CARD 1: SELECCIÓN -->
         <div class="lg:col-span-1 bg-white shadow-lg rounded-xl p-6">
-          <h3 class="text-xl font-bold text-gray-800 mb-4">Receta</h3>
+          <h3 class="text-xl font-bold text-gray-800 mb-4">Ricetta</h3>
           <select
             id="recipe-selector"
             class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150"
           >
-            <option value="">-- Seleccione una Receta --</option>
+            <option value="">-- Seleziona una ricetta --</option>
           </select>
           <button
             id="start-prep-btn"
             class="w-full mt-4 p-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
           >
-            Iniciar
+            Inizia
           </button>
         </div>
 
         <!-- CARD 2 & 3: ESTADO DE PESOS DE REFERENCIA -->
         <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-gray-100 p-4 rounded-lg">
-            <p class="text-sm font-medium text-gray-500">Peso Bruto (Kg)</p>
+            <p class="text-sm font-medium text-gray-500">Peso Lordo (Kg)</p>
             <span id="raw-weight" class="text-2xl font-bold text-gray-800"
               >0.00 g</span
             >
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
-            <p class="text-sm font-medium text-gray-500">Tara (Contenedor)</p>
+            <p class="text-sm font-medium text-gray-500">Tara (Contenitore)</p>
             <span id="tare-weight" class="text-2xl font-bold text-gray-800"
               >0.00g</span
             >
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
-            <p class="text-sm font-medium text-gray-500">
-              Acumulado (Anterior)
-            </p>
+            <p class="text-sm font-medium text-gray-500">Totale Accumulato</p>
             <span
               id="accumulated-weight"
               class="text-2xl font-bold text-gray-800"
@@ -248,7 +246,7 @@
       <!-- SECCIÓN 3: TABLA DE RECETA Y PROGRESO -->
       <div class="bg-white shadow-lg rounded-xl p-6">
         <h2 id="prep-title" class="text-2xl font-bold text-gray-800 mb-4">
-          Detalle de la Receta
+          Dettaglio della Ricetta
         </h2>
 
         <div class="overflow-x-auto">
@@ -265,25 +263,25 @@
                   scope="col"
                   class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Requerido (g)
+                  Richiesto (g)
                 </th>
                 <th
                   scope="col"
                   class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  Peso Añadido (g)
+                  Peso Aggiunto (g)
                 </th>
                 <th
                   scope="col"
                   class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
                 >
-                  Progreso
+                  Progresso
                 </th>
                 <th
                   scope="col"
                   class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 >
-                  % Versado
+                  % Versato
                 </th>
               </tr>
             </thead>
@@ -424,7 +422,7 @@
             // Modo TARA: el display principal solo muestra el peso bruto
             this.displayManager.updateMainWeightDisplay(
               this.currentWeightGrams,
-              "Pesar Contenedor",
+              "Pesare Contenitore",
               null,
               0
             );
@@ -463,9 +461,9 @@
 
           this.displayManager.renderRecipe(this.recipe, recipeName);
           this.displayManager.setNextButtonVisibility(true); // Mostrar botón Siguiente
-          this.displayManager.setNextButtonText(false); // Siempre "Siguiente" al inicio
+          this.displayManager.setNextButtonText(false, true); // Mostrare "Tarare" nel primo passo (TARA)
           this.displayManager.showInstructions(
-            "Paso 1: Coloca el contenedor vacío en la báscula y presiona **SIGUIENTE** para establecer la Tara."
+            "Passo 1: Metti il contenitore vuoto sulla bilancia e premi **SUCCESSIVO** per impostare la tara."
           );
 
           // **CORRECCIÓN:** Habilitar el botón Poner a Cero inmediatamente al entrar en modo TARA.
@@ -474,7 +472,7 @@
           // Forzar la actualización del display principal a 0.00g (antes de recibir el primer peso de la báscula)
           this.displayManager.updateMainWeightDisplay(
             0.0,
-            "Pesar Contenedor",
+            "Pesare Contenitore",
             null,
             0
           );
@@ -537,9 +535,9 @@
             this.currentIngredientIndex = -2; // Marca como completado/inactivo
             const netTotal = this.accumulatedWeight - this.tareWeight;
             this.displayManager.showInstructions(
-              `✅ ¡Receta Completada! Peso neto total: <strong>${netTotal.toFixed(
+              `✅ Ricetta completata! Peso netto totale: <strong>${netTotal.toFixed(
                 2
-              )}</strong>g**.`
+              )}</strong>g.`
             );
             this.displayManager.updateCurrentIngredient(null);
             this.displayManager.resetUI(); // Reset UI
@@ -553,13 +551,14 @@
           // Actualizar texto del botón a "Finalizar" si es el último
           const isFinal =
             this.currentIngredientIndex === this.recipe.length - 1;
-          this.displayManager.setNextButtonText(isFinal);
+          const isTare = this.currentIngredientIndex === -1;
+          this.displayManager.setNextButtonText(isFinal, isTare);
 
           // Guía al siguiente ingrediente
           this.displayManager.showInstructions(
-            `Paso ${this.currentIngredientIndex + 2}: Añadir <strong>${
+            `Passo ${this.currentIngredientIndex + 2}: Aggiungere <strong>${
               ingredient.name
-            }</strong> (requerido: ${ingredient.grams}g).`
+            }</strong> (richiesti: ${ingredient.grams}g).`
           );
           this.displayManager.updateCurrentIngredient(
             this.currentIngredientIndex
@@ -644,7 +643,7 @@
           const origCurrent = origAll[idx] || 0;
           if (origCurrent <= 0) {
             this.displayManager.showInstructions(
-              "No se puede recalcular: el ingrediente actual no tiene cantidad original definida."
+              "Impossibile ricalcolare: l'ingrediente corrente non ha quantità originali definite."
             );
             this.displayManager.setRecalcButtonVisibility(false);
             return;
@@ -701,7 +700,7 @@
           );
 
           this.displayManager.showInstructions(
-            `Se generó una receta escalada que mantiene las proporciones originales (factor: ${s.toFixed(
+            `È stata generata una ricetta scalata che mantiene le proporzioni originali (fattore: ${s.toFixed(
               3
             )}).`
           );
@@ -782,7 +781,7 @@
 
           // 1. Mostrar/Ocultar barra de progreso
           if (
-            ingredientName === "Pesar Contenedor" ||
+            ingredientName === "Pesare Contenitore" ||
             ingredientName === null
           ) {
             progressBarContainer.style.display = "none";
@@ -805,30 +804,32 @@
 
             // La barra de progreso solo puede ir de 0 a 100, así que la limitamos visualmente
             progressBar.value = Math.min(100, Math.max(0, percentage));
-            percentText.textContent = `${percentage.toFixed(0)}% Versado`;
+            percentText.textContent = `${percentage.toFixed(0)}% Versato`;
           }
 
           // 2. Actualizar texto de objetivo
-          if (ingredientName === "Pesar Contenedor") {
+          if (ingredientName === "Pesare Contenitore") {
             targetDisplay.innerHTML =
-              '<span class="text-gray-800">Pesar Contenedor</span>';
+              '<span class="text-gray-800">Pesare Contenitore</span>';
           } else if (ingredientName !== null && requiredGrams !== null) {
             // Modo Ingrediente
             targetDisplay.innerHTML = `<span class="text-lg font-bold text-gray-800">${ingredientName}</span>
                                                <span class="text-sm font-semibold text-gray-500">| ${requiredGrams.toFixed(
                                                  2
-                                               )}g Requerido</span>`;
+                                               )}g Richiesti</span>`;
           } else {
             // Estado inicial o finalizado/inactivo
             targetDisplay.innerHTML =
               "Peso Neto (Báscula Bruta - Tara Anterior)";
-            percentText.textContent = "0% Versado";
+            percentText.textContent = "0% Versato";
           }
         }
 
         // Renderiza la tabla de ingredientes de la receta
         renderRecipe(recipe, name) {
-          document.getElementById("prep-title").textContent = `Receta: ${name}`;
+          document.getElementById(
+            "prep-title"
+          ).textContent = `Ricetta: ${name}`;
           this.setNextButtonVisibility(true);
 
           const tbody = document.getElementById("recipe-table-body");
@@ -961,20 +962,27 @@
           }
         }
 
-        // Cambia el texto del botón Siguiente/Finalizar
-        setNextButtonText(isFinalIngredient) {
+        // Cambia el texto del botón Siguiente/Finalizar/Tara
+        setNextButtonText(isFinalIngredient, isTare = false) {
           const button = document.getElementById("next-ingredient-btn");
-          button.textContent = isFinalIngredient
-            ? "Finalizar Receta"
-            : "Siguiente Ingrediente";
-
-          // Highlight finalize button
-          if (isFinalIngredient) {
-            button.classList.remove("bg-green-600", "hover:bg-green-700");
-            button.classList.add("bg-orange-500", "hover:bg-orange-600");
-          } else {
+          if (isTare) {
+            button.textContent = "Tarare";
+            // Ensure it looks like the normal next button
             button.classList.remove("bg-orange-500", "hover:bg-orange-600");
             button.classList.add("bg-green-600", "hover:bg-green-700");
+          } else {
+            button.textContent = isFinalIngredient
+              ? "Completa Ricetta"
+              : "Ingrediente Successivo";
+
+            // Highlight finalize button
+            if (isFinalIngredient) {
+              button.classList.remove("bg-green-600", "hover:bg-green-700");
+              button.classList.add("bg-orange-500", "hover:bg-orange-600");
+            } else {
+              button.classList.remove("bg-orange-500", "hover:bg-orange-600");
+              button.classList.add("bg-green-600", "hover:bg-green-700");
+            }
           }
         }
 
@@ -984,7 +992,7 @@
 
           document.getElementById(
             "prep-title"
-          ).textContent = `Detalle de la Receta`;
+          ).textContent = `Dettaglio della Ricetta`;
           this.setNextButtonVisibility(false);
           document.getElementById("main-progress-bar-container").style.display =
             "none";
@@ -998,7 +1006,7 @@
           // Importante: Reiniciar el display principal a 0.00 y el mensaje inicial
           this.updateMainWeightDisplay(0.0, null, null, 0);
           this.showInstructions(
-            "👋 Selecciona una receta para empezar la preparación."
+            "👋 Seleziona una ricetta per iniziare la preparazione."
           );
         }
       }
@@ -1033,7 +1041,7 @@
             scalePublisher.setWeight(finalReading);
           } else {
             console.warn(
-              `[Scale Input] Lectura de báscula inválida o vacía: "${finalReading}". El formato esperado es "X,XX" (en Kg).`
+              `[Scale Input] Lettura bilancia non valida o vuota: "${finalReading}". Il formato atteso è "X,XX" (in Kg).`
             );
           }
 
@@ -1074,7 +1082,7 @@
               // Feedback visual en lugar de alert
               document.getElementById(
                 "current-instruction"
-              ).innerHTML = `<span class="text-red-600">⚠️ Por favor, selecciona una receta válida para comenzar.</span>`;
+              ).innerHTML = `<span class="text-red-600">⚠️ Per favore, seleziona una ricetta valida per iniziare.</span>`;
             }
           });
 
