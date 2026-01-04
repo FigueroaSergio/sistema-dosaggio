@@ -188,6 +188,14 @@
           >
             Siguiente Ingrediente
           </button>
+          <button
+            id="recalc-btn"
+            class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+            style="display: none"
+            title="Recalcula las cantidades de los ingredientes restantes para absorber el exceso"
+          >
+            Recalcular Cantidades
+          </button>
         </div>
       </div>
 
@@ -315,6 +323,7 @@
           const numericWeightKg = parseFloat(
             newWeightKgString.replace(",", ".")
           );
+          console.log(newWeightKgString);
 
           if (!isNaN(numericWeightKg)) {
             // Convertir Kg a Gramos para la lógica interna
@@ -438,8 +447,14 @@
         }
 
         startPreparation(recipeName) {
-          this.recipe = this.recipeManager.getRecipe(recipeName);
-          if (!this.recipe) return;
+          // Clone recipe for this session so we can modify quantities without mutating the base data.
+          // Also store originalGrams for each ingredient to keep a reference.
+          const baseRecipe = this.recipeManager.getRecipe(recipeName);
+          if (!baseRecipe) return;
+          this.recipe = baseRecipe.map((it) => ({
+            ...it,
+            originalGrams: it.grams,
+          }));
 
           this.currentIngredientIndex = -1; // Inicia en modo TARA
           this.tareWeight = 0;
@@ -590,6 +605,108 @@
             requiredGrams,
             percentage
           );
+
+          // Mostrar/ocultar el botón de recalcular si hay overflow (>100%).
+          // Ahora también se mostrará en el último ingrediente para permitir recalcular/escalar la receta completa.
+          const hasOverflow = percentage > 100;
+          this.displayManager.setRecalcButtonVisibility(hasOverflow);
+        }
+
+        // Nueva función que recalcula manteniendo proporciones originales entre los ingredientes restantes
+        recalculateKeepProportions() {
+          if (!this.recipe) return;
+          const idx = this.currentIngredientIndex;
+          if (idx < 0 || idx >= this.recipe.length) return;
+
+          const ingredient = this.recipe[idx];
+          const addedGrams =
+            this.currentWeightGrams -
+            (this.getAccumulatedWeight() - this.getPreviusWeight());
+          let overflow = addedGrams - ingredient.grams;
+
+          if (overflow <= 0) {
+            this.displayManager.showInstructions("No hay exceso para ajustar.");
+            this.displayManager.setRecalcButtonVisibility(false);
+            return;
+          }
+
+          // Nueva estrategia: escalar la receta completa para mantener proporciones originales de TODOS los ingredientes
+          // s = factor de escala tal que originalGrams[current] * s >= addedGrams
+          // Además nos aseguramos que para cualquier ingrediente previo (ya añadido), newReq >= already
+
+          const origAll = this.recipe.map((it) => it.originalGrams || it.grams);
+          const alreadyAll = this.recipe.map((_, i) =>
+            this.weightIngredients && this.weightIngredients[i]
+              ? this.weightIngredients[i]
+              : 0
+          );
+
+          const origCurrent = origAll[idx] || 0;
+          if (origCurrent <= 0) {
+            this.displayManager.showInstructions(
+              "No se puede recalcular: el ingrediente actual no tiene cantidad original definida."
+            );
+            this.displayManager.setRecalcButtonVisibility(false);
+            return;
+          }
+
+          const sCandidate = addedGrams / origCurrent; // factor para que el ingrediente actual quede 'encajado' en la receta escalada
+          // s must also satisfy that for all previous ingredients, newReq >= already
+          let sMinPrev = 0;
+          for (let j = 0; j <= idx; j++) {
+            const origJ = origAll[j] || 0;
+            const alreadyJ = alreadyAll[j] || 0;
+            if (origJ > 0) {
+              sMinPrev = Math.max(sMinPrev, alreadyJ / origJ);
+            }
+          }
+
+          // Factor final: al menos el que ajusta el actual y suficiente para que previos no queden por encima de la nueva meta
+          const s = Math.max(sCandidate, sMinPrev);
+
+          // Aplicar nueva receta escalada (redondeo a 2 decimales)
+          for (let j = 0; j < this.recipe.length; j++) {
+            const newReq = +(origAll[j] * s).toFixed(2);
+            // Aseguramos no poner el requerimiento menor que lo ya agregado (protección extra)
+            const finalReq =
+              newReq < (alreadyAll[j] || 0)
+                ? +(alreadyAll[j] || 0).toFixed(2)
+                : newReq;
+            this.recipe[j].grams = finalReq;
+            this.displayManager.updateIngredientRequiredGram(j, finalReq);
+          }
+
+          // Ajustar porcentajes/barras según weightIngredients y la lectura actual del ingrediente actual
+          for (let j = 0; j < this.recipe.length; j++) {
+            const req = this.recipe[j].grams;
+            const added =
+              j === idx
+                ? addedGrams
+                : this.weightIngredients && this.weightIngredients[j]
+                ? this.weightIngredients[j]
+                : 0;
+            const percent = req > 0 ? (added / req) * 100 : 100;
+            this.displayManager.updateTableProgress(j, added, req, percent);
+          }
+
+          // Actualizar el display principal con el ingrediente actual recalculado
+          const reqCurrent = this.recipe[idx].grams;
+          const percentCurrent =
+            reqCurrent > 0 ? (addedGrams / reqCurrent) * 100 : 100;
+          this.displayManager.updateMainWeightDisplay(
+            addedGrams,
+            ingredient.name,
+            reqCurrent,
+            percentCurrent
+          );
+
+          this.displayManager.showInstructions(
+            `Se generó una receta escalada que mantiene las proporciones originales (factor: ${s.toFixed(
+              3
+            )}).`
+          );
+
+          this.displayManager.setRecalcButtonVisibility(false);
         }
       }
 
@@ -722,8 +839,12 @@
             row.id = `ingredient-row-${index}`;
             row.className = "hover:bg-gray-50 transition duration-150"; // Tailwind class
             row.innerHTML = `
-                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${item.name}</td>
-                        <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${item.grams}g</td>
+                        <td class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900">${
+                          item.name
+                        }</td>
+                        <td id="required-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${item.grams.toFixed(
+              2
+            )}g</td>
                         <td id="added-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-semibold">0.00g</td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <progress id="progress-${index}" value="0" max="100" class="w-full bar-color-black"></progress>
@@ -810,6 +931,21 @@
         setNextButtonVisibility(isVisible) {
           document.getElementById("next-ingredient-btn").style.display =
             isVisible ? "block" : "none";
+        }
+
+        // Muestra/oculta el botón de recalcular cantidades (visible solo en overflow)
+        setRecalcButtonVisibility(isVisible) {
+          document.getElementById("recalc-btn").style.display = isVisible
+            ? "block"
+            : "none";
+        }
+
+        // Actualiza solo el valor requerido (segunda columna) para un ingrediente dado
+        updateIngredientRequiredGram(index, newGrams) {
+          const cell = document.getElementById(`required-${index}`);
+          if (cell) {
+            cell.textContent = `${newGrams.toFixed(2)}g`;
+          }
         }
 
         // Habilita/deshabilita el botón Poner a Cero
@@ -954,9 +1090,16 @@
           // La UI se actualizará a través del ciclo Observer/Publisher
         });
 
+        // Recalcular cantidades en caso de overflow
+        document.getElementById("recalc-btn").addEventListener("click", () => {
+          recipePrepController.recalculateKeepProportions();
+        });
+
         // Inicializar botón de Siguiente Ingrediente oculto
         recipePrepController.displayManager.setNextButtonVisibility(false);
         recipePrepController.displayManager.setZeroButtonEnabled(true);
+        // Asegurar que el botón de recalcular esté oculto al inicio
+        recipePrepController.displayManager.setRecalcButtonVisibility(false);
       });
     </script>
   </body>
