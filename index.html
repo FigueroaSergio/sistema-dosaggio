@@ -215,7 +215,7 @@
           <div class="bg-gray-100 p-4 rounded-lg">
             <p class="text-sm font-medium text-gray-500">Peso Bruto (Kg)</p>
             <span id="raw-weight" class="text-2xl font-bold text-gray-800"
-              >0.00kg</span
+              >0.00 g</span
             >
           </div>
           <div class="bg-gray-100 p-4 rounded-lg">
@@ -322,8 +322,10 @@
 
             // Solo actualiza y notifica si el peso ha cambiado significativamente
             if (Math.abs(this.weightGrams - newWeightGrams) > 0.001) {
+              if (this.weightGrams == newWeightGrams) return;
               this.weightKg = numericWeightKg;
               this.weightGrams = newWeightGrams;
+
               this.notify(this.weightGrams);
             }
           }
@@ -335,7 +337,15 @@
           });
         }
       }
-
+      class Recipe {
+        constructor(name, ingredients) {
+          this.name = name;
+          this.ingredients = ingredients;
+        }
+        getIngredients() {
+          return this.ingredients;
+        }
+      }
       // =================================================================
       // 2. CLASE RECIPEMANAGER (Gestor de Recetas - Datos de la aplicación)
       // =================================================================
@@ -389,12 +399,14 @@
         }
 
         // Método requerido por el WeightPublisher (Observer)
-        update(rawWeightGrams, rawWeightKg) {
+        update(rawWeightGrams) {
+          console.log("update");
+
           this.currentWeightGrams = rawWeightGrams;
 
           // Actualiza siempre los pesos de referencia
           this.displayManager.updateStatus(
-            rawWeightKg,
+            rawWeightGrams,
             this.tareWeight,
             this.accumulatedWeight
           );
@@ -410,6 +422,7 @@
             this.displayManager.setZeroButtonEnabled(true);
           } else if (this.currentIngredientIndex >= 0) {
             // Modo Ingrediente
+
             this.updateIngredientProgress();
             this.displayManager.setZeroButtonEnabled(false);
           } else {
@@ -431,6 +444,8 @@
           this.currentIngredientIndex = -1; // Inicia en modo TARA
           this.tareWeight = 0;
           this.accumulatedWeight = 0;
+          this.weightIngredients = new Array(this.recipe.length).fill(0);
+
           this.displayManager.renderRecipe(this.recipe, recipeName);
           this.displayManager.setNextButtonVisibility(true); // Mostrar botón Siguiente
           this.displayManager.setNextButtonText(false); // Siempre "Siguiente" al inicio
@@ -449,21 +464,44 @@
             0
           );
         }
-
+        saveWeight() {
+          console.log("Saving weight: ", this.currentWeightGrams);
+          let currentIngredientIndex = this.currentIngredientIndex;
+          if (currentIngredientIndex == -1) {
+            this.tareWeight = this.currentWeightGrams;
+          } else {
+            this.weightIngredients[currentIngredientIndex] =
+              this.currentWeightGrams -
+              (this.getAccumulatedWeight() - this.getPreviusWeight());
+          }
+          console.log("New state: ", this);
+        }
+        getAccumulatedWeight() {
+          return (
+            this.tareWeight +
+            this.weightIngredients.reduce((prev, curr) => prev + curr, 0)
+          );
+        }
+        getPreviusWeight() {
+          let step = this.currentIngredientIndex;
+          if (step == -1) {
+            return this.tareWeight;
+          }
+          return this.weightIngredients[step];
+        }
         /**
          * Avanza al siguiente paso (Tara, Ingrediente N, Finalizar).
          * En cada avance, acumula el peso actual.
          */
         nextStep() {
           if (!this.recipe) return;
+          this.setStep(this.currentIngredientIndex + 1);
+        }
 
+        setStep(step) {
+          this.saveWeight();
+          this.currentIngredientIndex = step;
           // 1. LÓGICA DE ACUMULACIÓN (Tarar implícitamente)
-
-          // Si estamos en TARA (-1) o en un INGREDIENTE (>=0), el peso bruto actual
-          // se convierte en el nuevo peso acumulado (la nueva tara para el siguiente paso).
-          if (this.currentIngredientIndex >= -1) {
-            this.accumulatedWeight = this.currentWeightGrams;
-          }
 
           // Si venimos del paso TARA (-1), establecemos el tareWeight inicial para referencia.
           if (this.currentIngredientIndex === -1) {
@@ -477,16 +515,16 @@
             this.displayManager.markRowAsCompleted(this.currentIngredientIndex);
           }
 
-          this.currentIngredientIndex++; // Avanzar al siguiente paso (0, 1, 2, ...)
+          // Avanzar al siguiente paso (0, 1, 2, ...)
 
           // 3. VERIFICACIÓN DE FIN DE RECETA
           if (this.currentIngredientIndex >= this.recipe.length) {
             this.currentIngredientIndex = -2; // Marca como completado/inactivo
             const netTotal = this.accumulatedWeight - this.tareWeight;
             this.displayManager.showInstructions(
-              `✅ ¡Receta Completada! Peso neto total: **${netTotal.toFixed(
+              `✅ ¡Receta Completada! Peso neto total: <strong>${netTotal.toFixed(
                 2
-              )}g**.`
+              )}</strong>g**.`
             );
             this.displayManager.updateCurrentIngredient(null);
             this.displayManager.resetUI(); // Reset UI
@@ -504,9 +542,9 @@
 
           // Guía al siguiente ingrediente
           this.displayManager.showInstructions(
-            `Paso ${this.currentIngredientIndex + 2}: Añadir **${
+            `Paso ${this.currentIngredientIndex + 2}: Añadir <strong>${
               ingredient.name
-            }** (requerido: ${ingredient.grams}g).`
+            }</strong> (requerido: ${ingredient.grams}g).`
           );
           this.displayManager.updateCurrentIngredient(
             this.currentIngredientIndex
@@ -514,6 +552,8 @@
 
           // FIX: Forzar una actualización de la UI inmediatamente después de tarar/cambiar de ingrediente.
           // Usamos el peso actual en Kg (0.00kg si no ha llegado una lectura real) para la actualización.
+          console.log("Pre-update");
+
           this.update(this.currentWeightGrams, scalePublisher.weightKg);
         }
 
@@ -521,9 +561,13 @@
         updateIngredientProgress() {
           const ingredient = this.recipe[this.currentIngredientIndex];
           if (!ingredient) return;
+          console.log(this);
+          console.log("Currente total: ", this.getAccumulatedWeight());
 
           // Peso Neto Añadido = Peso Bruto (Báscula) - Peso Acumulado de todo lo anterior
-          const addedGrams = this.currentWeightGrams - this.accumulatedWeight;
+          const addedGrams =
+            this.currentWeightGrams -
+            (this.getAccumulatedWeight() - this.getPreviusWeight());
 
           // NO CLAMPING: Permitimos que addedGrams sea negativo (si se quita peso) o positivo (si se añade)
           const requiredGrams = ingredient.grams;
@@ -653,7 +697,7 @@
               '<span class="text-gray-800">Pesar Contenedor</span>';
           } else if (ingredientName !== null && requiredGrams !== null) {
             // Modo Ingrediente
-            targetDisplay.innerHTML = `<span class="text-lg font-bold text-gray-800">${ingredientName}</span> 
+            targetDisplay.innerHTML = `<span class="text-lg font-bold text-gray-800">${ingredientName}</span>
                                                <span class="text-sm font-semibold text-gray-500">| ${requiredGrams.toFixed(
                                                  2
                                                )}g Requerido</span>`;
@@ -686,6 +730,9 @@
                         </td>
                         <td id="percent-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 progress-color-black">0%</td>
                     `;
+            row.addEventListener("click", () => {
+              recipePrepController.setStep(index);
+            });
           });
 
           this.updateCurrentIngredient(-1); // Inicializa a -1 (modo TARA)
@@ -699,7 +746,7 @@
         // Actualiza la visualización de los pesos de referencia
         updateStatus(rawWeightKg, tareWeight, accumulatedWeight) {
           document.getElementById("raw-weight").textContent =
-            rawWeightKg.toFixed(2) + "kg";
+            rawWeightKg.toFixed(2) + "g";
           document.getElementById("tare-weight").textContent =
             tareWeight.toFixed(2) + "g";
           document.getElementById("accumulated-weight").textContent =
@@ -797,6 +844,8 @@
 
         // Función para resetear el estado de la UI al finalizar
         resetUI() {
+          console.log("reset");
+
           document.getElementById(
             "prep-title"
           ).textContent = `Detalle de la Receta`;
@@ -806,9 +855,9 @@
           document.getElementById("recipe-table-body").innerHTML = ""; // Clear table
 
           // Reset reference weights
-          document.getElementById("raw-weight").textContent = "0.00kg";
-          document.getElementById("tare-weight").textContent = "0.00g";
-          document.getElementById("accumulated-weight").textContent = "0.00g";
+          document.getElementById("raw-weight").textContent = "0.00 g";
+          document.getElementById("tare-weight").textContent = "0.00 g";
+          document.getElementById("accumulated-weight").textContent = "0.00 g";
 
           // Importante: Reiniciar el display principal a 0.00 y el mensaje inicial
           this.updateMainWeightDisplay(0.0, null, null, 0);
@@ -836,9 +885,12 @@
 
       document.addEventListener("keydown", (event) => {
         // Prevenimos que la tecla Enter haga algo más (como enviar un formulario)
+        console.log(event.key);
+
         if (event.key === "Enter") {
           const finalReading = buffer.trim();
           buffer = "";
+          console.log(buffer);
 
           if (finalReading && SCALE_PATTERN.test(finalReading)) {
             // El publicador notifica a todos los suscriptores. La conversión a gramos se hace dentro.
@@ -859,6 +911,9 @@
           // Captura caracteres individuales que vienen de la báscula
           buffer += event.key;
         }
+      });
+      document.addEventListener("keyup", (event) => {
+        console.log(event.key);
       });
 
       // --- Lógica de Interfaz y Carga Inicial ---
