@@ -292,14 +292,13 @@
         </div>
       </div>
     </div>
+    <script type="text/javascript" src="./ricette-full.js"></script>
 
-    <!-- CÓDIGO JAVASCRIPT -->
-    <script type="module">
+    <script type="text/javascript">
       // =================================================================
       // 1. CLASE WEIGHTPUBLISHER (Publicador - Fuente de datos de la báscula)
       // =================================================================
-      import  ricette from "./ricette.json"  with { type: "json" };
-      console.log(ricette);
+      let ricette = ricette_tutte;
 
       class WeightPublisher {
         constructor() {
