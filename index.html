@@ -223,6 +223,58 @@
           </button>
         </div>
 
+        <!-- MODAL: Chiedi Quantità Desiderata -->
+        <div
+          id="quantity-modal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          style="display: none"
+        >
+          <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold text-gray-800 mb-2">
+              Quantità Desiderata
+            </h2>
+            <p class="text-gray-600 mb-6">
+              Inserisci la quantità in grammi che desideri preparare:
+            </p>
+            <div class="mb-6">
+              <label
+                for="desired-quantity-input"
+                class="block text-sm font-medium text-gray-700 mb-2"
+              >
+                Quantità (g)
+              </label>
+              <input
+                id="desired-quantity-input"
+                type="number"
+                min="1"
+                step="0.1"
+                placeholder="es. 500"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150"
+              />
+            </div>
+            <div
+              id="recipe-info"
+              class="bg-blue-50 p-3 rounded-lg mb-6 text-sm text-blue-900"
+            >
+              <!-- Calcolata dinamicamente -->
+            </div>
+            <div class="flex gap-3">
+              <button
+                id="cancel-quantity-btn"
+                class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition duration-150"
+              >
+                Annulla
+              </button>
+              <button
+                id="confirm-quantity-btn"
+                class="flex-1 px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
+              >
+                Conferma
+              </button>
+            </div>
+          </div>
+        </div>
+
         <!-- CARD 2 & 3: ESTADO DE PESOS DE REFERENCIA -->
         <div class="lg:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div class="bg-gray-100 p-4 rounded-lg sm:col-span-2">
@@ -989,7 +1041,96 @@
       }
 
       // =================================================================
-      // 5. LÓGICA DE INICIALIZACIÓN Y TECLADO (MAIN)
+      // 5. FUNCIONES AUXILIARES DE RECALCULADO Y MODAL
+      // =================================================================
+
+      /**
+       * Calcula el peso total de una receta (suma de todos los ingredientes)
+       */
+      function calculateRecipeTotalWeight(recipe) {
+        return recipe.reduce((sum, ingredient) => sum + ingredient.grams, 0);
+      }
+
+      /**
+       * Escala una receta a una cantidad desiderada manteniendo las proporciones originales
+       */
+      function scaleRecipeToQuantity(recipe, desiredQuantityGrams) {
+        const recipeTotalWeight = calculateRecipeTotalWeight(recipe);
+        if (recipeTotalWeight <= 0) {
+          console.warn("Recipe total weight is 0 or negative");
+          return recipe;
+        }
+
+        const scaleFactor = desiredQuantityGrams / recipeTotalWeight;
+
+        return recipe.map((ingredient) => ({
+          ...ingredient,
+          grams: +(ingredient.grams * scaleFactor).toFixed(2),
+          originalGrams: ingredient.grams, // Mantieni il peso originale
+        }));
+      }
+
+      /**
+       * Mostra il modal per chiedere la quantità desiderata
+       */
+      function showQuantityModal(recipeName) {
+        isModalOpen = true;
+        const modal = document.getElementById("quantity-modal");
+        const recipeInfo = document.getElementById("recipe-info");
+        const input = document.getElementById("desired-quantity-input");
+
+        // Ottieni la ricetta base per calcolare il peso totale
+        const baseRecipe = recipeManager.getRecipe(recipeName);
+        const totalWeight = calculateRecipeTotalWeight(baseRecipe);
+
+        // Mostra info sulla ricetta
+        recipeInfo.innerHTML = `<strong>Ricetta:</strong> ${recipeName}<br/><strong>Peso totale originale:</strong> ${totalWeight.toFixed(
+          2
+        )}g`;
+
+        // Pulisci l'input
+        input.value = totalWeight.toFixed(2);
+        input.focus();
+        input.select();
+
+        // Mostra il modal
+        modal.style.display = "flex";
+      }
+
+      /**
+       * Nascondi il modal
+       */
+      function hideQuantityModal() {
+        isModalOpen = false;
+        document.getElementById("quantity-modal").style.display = "none";
+      }
+
+      /**
+       * Avvia la preparazione con la quantità desiderata
+       */
+      function startPreparationWithQuantity(recipeName, desiredQuantityGrams) {
+        // Ottieni la ricetta base
+        const baseRecipe = recipeManager.getRecipe(recipeName);
+
+        // Scala la ricetta
+        const scaledRecipe = scaleRecipeToQuantity(
+          baseRecipe,
+          desiredQuantityGrams
+        );
+
+        // Aggiorna il peso della ricetta nel recipeManager temporaneamente
+        const originalRecipes = recipeManager.recipes;
+        recipeManager.recipes[recipeName] = scaledRecipe;
+
+        // Avvia la preparazione
+        recipePrepController.startPreparation(recipeName);
+
+        // Ripristina le ricette originali (dato che ogni sessione clona la ricetta)
+        recipeManager.recipes = originalRecipes;
+      }
+
+      // =================================================================
+      // 6. LÓGICA DE INICIALIZACIÓN Y TECLADO (MAIN)
       // =================================================================
 
       const scalePublisher = new WeightPublisher();
@@ -1001,6 +1142,7 @@
 
       // --- Lógica de Captura de Teclado (Simulación de la Báscula en Kg) ---
       let buffer = "";
+      let isModalOpen = false; // Flag para controlar si el modal está abierto
       // El patrón acepta 0 o más dígitos, seguido de una coma, seguido de uno o más dígitos
       const SCALE_PATTERN = /^(\d*|0),\d+$/;
 
@@ -1012,6 +1154,9 @@
           const finalReading = buffer.trim();
           buffer = "";
           console.log(buffer);
+          console.log(isModalOpen);
+
+          // No procesar la lectura de la báscula si el modal está abierto
 
           if (finalReading && SCALE_PATTERN.test(finalReading)) {
             // El publicador notifica a todos los suscriptores. La conversión a gramos se hace dentro.
@@ -1030,11 +1175,11 @@
           !event.metaKey
         ) {
           // Captura caracteres individuales que vienen de la báscula
+          if (isModalOpen) {
+            return;
+          }
           buffer += event.key;
         }
-      });
-      document.addEventListener("keyup", (event) => {
-        console.log(event.key);
       });
 
       // --- Lógica de Interfaz y Carga Inicial ---
@@ -1054,12 +1199,49 @@
           .addEventListener("click", () => {
             const selectedRecipe = selector.value;
             if (selectedRecipe) {
-              recipePrepController.startPreparation(selectedRecipe);
+              showQuantityModal(selectedRecipe);
             } else {
               // Feedback visual en lugar de alert
               document.getElementById(
                 "current-instruction"
               ).innerHTML = `<span class="text-red-600">⚠️ Per favore, seleziona una ricetta valida per iniziare.</span>`;
+            }
+          });
+
+        // Event listener para confirmar la cantidad desiderada
+        document
+          .getElementById("confirm-quantity-btn")
+          .addEventListener("click", () => {
+            const selectedRecipe = selector.value;
+            const desiredQuantityInput = document.getElementById(
+              "desired-quantity-input"
+            );
+            const desiredQuantity = parseFloat(desiredQuantityInput.value);
+
+            if (!desiredQuantity || desiredQuantity <= 0) {
+              alert(
+                "Per favore, inserisci una quantità valida (maggiore di 0)."
+              );
+              return;
+            }
+
+            hideQuantityModal();
+            startPreparationWithQuantity(selectedRecipe, desiredQuantity);
+          });
+
+        // Event listener para cancelar el modal
+        document
+          .getElementById("cancel-quantity-btn")
+          .addEventListener("click", () => {
+            hideQuantityModal();
+          });
+
+        // Permitir presionar Enter en el input de cantidad
+        document
+          .getElementById("desired-quantity-input")
+          .addEventListener("keydown", (event) => {
+            if (event.key === "Enter") {
+              document.getElementById("confirm-quantity-btn").click();
             }
           });
 
