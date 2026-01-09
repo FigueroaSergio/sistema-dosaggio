@@ -637,10 +637,25 @@
             percentage
           );
 
-          // Mostrar/ocultar el botón de recalcular si hay overflow (>100%).
-          // Ahora también se mostrará en el último ingrediente para permitir recalcular/escalar la receta completa.
-          const hasOverflow = percentage > 100;
-          this.displayManager.setRecalcButtonVisibility(hasOverflow);
+          // Mostrar/ocultar el botón de recalcular si hay overflow (>100%) en CUALQUIER ingrediente
+          let hasAnyOverflow = false;
+          for (let i = 0; i <= this.currentIngredientIndex; i++) {
+            const req = this.recipe[i].grams;
+            const added =
+              i === this.currentIngredientIndex
+                ? addedGrams
+                : this.weightIngredients && this.weightIngredients[i]
+                ? this.weightIngredients[i]
+                : 0;
+            if (req > 0) {
+              const percent = (added / req) * 100;
+              if (percent > 100) {
+                hasAnyOverflow = true;
+                break;
+              }
+            }
+          }
+          this.displayManager.setRecalcButtonVisibility(hasAnyOverflow);
         }
 
         // Nueva función que recalcula manteniendo proporciones originales entre los ingredientes restantes
@@ -649,22 +664,33 @@
           const idx = this.currentIngredientIndex;
           if (idx < 0 || idx >= this.recipe.length) return;
 
-          const ingredient = this.recipe[idx];
-          const addedGrams =
-            this.currentWeightGrams -
-            (this.getAccumulatedWeight() - this.getPreviusWeight());
-          let overflow = addedGrams - ingredient.grams;
+          // Calcular el factor más alto (highest overflow factor) entre todos los ingredientes añadidos hasta ahora
+          let highestFactor = 1;
+          for (let i = 0; i <= idx; i++) {
+            const req = this.recipe[i].grams;
+            const added =
+              i === idx
+                ? this.currentWeightGrams -
+                  (this.getAccumulatedWeight() - this.getPreviusWeight())
+                : this.weightIngredients && this.weightIngredients[i]
+                ? this.weightIngredients[i]
+                : 0;
+            if (req > 0) {
+              const factor = added / req;
+              if (factor > 1) {
+                // Solo consideramos overflows
+                highestFactor = Math.max(highestFactor, factor);
+              }
+            }
+          }
 
-          if (overflow <= 0) {
+          if (highestFactor <= 1) {
             this.displayManager.showInstructions("No hay exceso para ajustar.");
             this.displayManager.setRecalcButtonVisibility(false);
             return;
           }
 
-          // Nueva estrategia: escalar la receta completa para mantener proporciones originales de TODOS los ingredientes
-          // s = factor de escala tal que originalGrams[current] * s >= addedGrams
-          // Además nos aseguramos que para cualquier ingrediente previo (ya añadido), newReq >= already
-
+          // Usar el factor más alto para escalar toda la receta
           const origAll = this.recipe.map((it) => it.originalGrams || it.grams);
           const alreadyAll = this.recipe.map((_, i) =>
             this.weightIngredients && this.weightIngredients[i]
@@ -672,32 +698,9 @@
               : 0
           );
 
-          const origCurrent = origAll[idx] || 0;
-          if (origCurrent <= 0) {
-            this.displayManager.showInstructions(
-              "Impossibile ricalcolare: l'ingrediente corrente non ha quantità originali definite."
-            );
-            this.displayManager.setRecalcButtonVisibility(false);
-            return;
-          }
-
-          const sCandidate = addedGrams / origCurrent; // factor para que el ingrediente actual quede 'encajado' en la receta escalada
-          // s must also satisfy that for all previous ingredients, newReq >= already
-          let sMinPrev = 0;
-          for (let j = 0; j <= idx; j++) {
-            const origJ = origAll[j] || 0;
-            const alreadyJ = alreadyAll[j] || 0;
-            if (origJ > 0) {
-              sMinPrev = Math.max(sMinPrev, alreadyJ / origJ);
-            }
-          }
-
-          // Factor final: al menos el que ajusta el actual y suficiente para que previos no queden por encima de la nueva meta
-          const s = Math.max(sCandidate, sMinPrev);
-
-          // Aplicar nueva receta escalada (redondeo a 2 decimales)
+          // Aplicar nueva receta escalada usando el factor más alto (redondeo a 2 decimales)
           for (let j = 0; j < this.recipe.length; j++) {
-            const newReq = +(origAll[j] * s).toFixed(2);
+            const newReq = +(origAll[j] * highestFactor).toFixed(2);
             // Aseguramos no poner el requerimiento menor que lo ya agregado (protección extra)
             const finalReq =
               newReq < (alreadyAll[j] || 0)
@@ -708,11 +711,14 @@
           }
 
           // Ajustar porcentajes/barras según weightIngredients y la lectura actual del ingrediente actual
+          const currentAddedGrams =
+            this.currentWeightGrams -
+            (this.getAccumulatedWeight() - this.getPreviusWeight());
           for (let j = 0; j < this.recipe.length; j++) {
             const req = this.recipe[j].grams;
             const added =
               j === idx
-                ? addedGrams
+                ? currentAddedGrams
                 : this.weightIngredients && this.weightIngredients[j]
                 ? this.weightIngredients[j]
                 : 0;
@@ -721,18 +727,19 @@
           }
 
           // Actualizar el display principal con el ingrediente actual recalculado
+          const ingredient = this.recipe[idx];
           const reqCurrent = this.recipe[idx].grams;
           const percentCurrent =
-            reqCurrent > 0 ? (addedGrams / reqCurrent) * 100 : 100;
+            reqCurrent > 0 ? (currentAddedGrams / reqCurrent) * 100 : 100;
           this.displayManager.updateMainWeightDisplay(
-            addedGrams,
+            currentAddedGrams,
             ingredient.name,
             reqCurrent,
             percentCurrent
           );
 
           this.displayManager.showInstructions(
-            `È stata generata una ricetta scalata che mantiene le proporzioni originali (fattore: ${s.toFixed(
+            `È stata generata una ricetta scalata che mantiene le proporzioni originali (fattore: ${highestFactor.toFixed(
               3
             )}).`
           );
@@ -1127,6 +1134,9 @@
 
         // Ripristina le ricette originali (dato che ogni sessione clona la ricetta)
         recipeManager.recipes = originalRecipes;
+
+        // Resetta il peso della bilancia a 0
+        scalePublisher.setWeight("0,00");
       }
 
       // =================================================================
