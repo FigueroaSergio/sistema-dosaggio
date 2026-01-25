@@ -107,9 +107,57 @@
       .bar-color-black::-moz-progress-bar {
         background-color: #1f2937;
       }
+
+      /* Estilos para validación de formularios */
+      .input-error {
+        border-color: #ef4444 !important;
+      }
+
+      .input-error::placeholder {
+        color: #dc2626;
+      }
+
+      .error-message {
+        color: #dc2626;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-top: 0.25rem;
+      }
     </style>
   </head>
   <body class="bg-gray-50 min-h-screen p-4 md:p-8 font-sans">
+    <!-- NAVBAR -->
+    <nav class="bg-teal-700 text-white shadow-lg mb-8 rounded-lg">
+      <div class="max-w-6xl mx-auto px-4 py-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div class="text-xl font-bold">Gestione Ricette</div>
+          <div class="flex flex-wrap gap-2">
+            <button
+              id="import-csv-btn"
+              class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg font-semibold transition duration-150"
+              title="Carica ricette da CSV"
+            >
+              📥 Importa CSV
+            </button>
+            <button
+              id="export-csv-btn"
+              class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg font-semibold transition duration-150"
+              title="Esporta ricette in CSV"
+            >
+              📤 Esporta CSV
+            </button>
+            <button
+              id="manage-recipes-btn"
+              class="px-4 py-2 bg-purple-600 hover:bg-purple-700 rounded-lg font-semibold transition duration-150"
+              title="Crea o modifica ricette"
+            >
+              ✏️ Gestisci Ricette
+            </button>
+          </div>
+        </div>
+      </div>
+    </nav>
+
     <div class="max-w-4xl mx-auto">
       <header class="text-center mb-8">
         <h1 class="text-4xl font-extrabold text-gray-900">
@@ -221,6 +269,138 @@
           >
             Inizia
           </button>
+        </div>
+
+        <!-- MODAL: Importar CSV -->
+        <div
+          id="import-csv-modal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          style="display: none"
+        >
+          <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">
+              📥 Importa Ricette da CSV
+            </h2>
+            <p class="text-gray-600 mb-6">
+              Seleziona un file CSV con il formato:
+              <code class="text-xs bg-gray-100 p-1 rounded block mt-2">
+                Ricetta;Ingrediente;#;Quantità;Tolleranza
+              </code>
+            </p>
+            <div class="mb-6">
+              <input
+                id="csv-file-input"
+                type="file"
+                accept=".csv"
+                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"
+              />
+            </div>
+            <div id="csv-import-status" class="text-sm mb-4"></div>
+            <div class="flex gap-3">
+              <button
+                id="cancel-import-btn"
+                class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition duration-150"
+              >
+                Annulla
+              </button>
+              <button
+                id="confirm-import-btn"
+                class="flex-1 px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150"
+              >
+                Importa
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODAL: Gestisci Ricette (Crea/Modifica) -->
+        <div
+          id="manage-recipes-modal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto"
+          style="display: none"
+        >
+          <div
+            class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 my-8"
+          >
+            <div class="flex justify-between items-center mb-6">
+              <h2 class="text-2xl font-bold text-gray-800">
+                ✏️ Gestisci Ricette
+              </h2>
+              <button
+                id="close-manage-modal"
+                class="text-gray-500 hover:text-gray-800 font-bold text-2xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <!-- Sezione per creare/modificare ricetta -->
+            <div class="mb-6">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                Crea o Modifica Ricetta
+              </h3>
+              <div class="grid grid-cols-1 gap-4 mb-4">
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 mb-2">
+                    Nome Ricetta
+                  </label>
+                  <input
+                    id="recipe-name-input"
+                    type="text"
+                    placeholder="es. Pane Integrale"
+                    required
+                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 transition duration-150"
+                  />
+                  <div
+                    id="recipe-name-error"
+                    class="error-message"
+                    style="display: none"
+                  >
+                    ⚠️ Nome ricetta obbligatorio
+                  </div>
+                </div>
+              </div>
+
+              <!-- Ingredienti -->
+              <div id="ingredients-container" class="mb-4">
+                <h4 class="text-sm font-semibold text-gray-700 mb-2">
+                  Ingredienti
+                </h4>
+                <div id="ingredients-list"></div>
+                <button
+                  id="add-ingredient-btn"
+                  class="mt-2 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 transition duration-150"
+                >
+                  + Aggiungi Ingrediente
+                </button>
+              </div>
+
+              <div class="flex gap-3">
+                <button
+                  id="cancel-manage-btn"
+                  class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition duration-150"
+                >
+                  Annulla
+                </button>
+                <button
+                  id="save-recipe-btn"
+                  class="flex-1 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-150"
+                >
+                  Salva Ricetta
+                </button>
+              </div>
+            </div>
+
+            <!-- Lista ricette esistenti -->
+            <div class="border-t pt-6">
+              <h3 class="text-lg font-semibold text-gray-700 mb-4">
+                Ricette Esistenti
+              </h3>
+              <div id="existing-recipes-list" class="max-h-64 overflow-y-auto">
+                <!-- Ricette caricate dinamicamente -->
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- MODAL: Pulisci la Bilancia -->
@@ -1074,6 +1254,377 @@
       }
 
       // =================================================================
+      // 5.1 FUNCIONES PARA CSV Y GESTIÓN DE RECETAS
+      // =================================================================
+
+      /**
+       * Parsea un CSV y lo convierte al formato requerido de recetas
+       * Formato esperado: Ricetta;Ingrediente;#;Quantità;Tolleranza
+       */
+      function parseCSVToRecipes(csvContent) {
+        const lines = csvContent.split("\n").filter((line) => line.trim());
+        const recipes = {};
+
+        lines.forEach((line) => {
+          const parts = line.split(";").map((p) => p.trim());
+          if (parts.length < 4) return; // Salta líneas inválidas
+
+          const [recipeName, ingredientName, order, quantityStr] = parts;
+          const quantity = parseFloat(quantityStr.replace(",", "."));
+
+          if (!recipes[recipeName]) {
+            recipes[recipeName] = [];
+          }
+
+          recipes[recipeName].push({
+            name: ingredientName,
+            grams: quantity,
+          });
+        });
+
+        // Ordenar ingredientes por orden y validar
+        Object.keys(recipes).forEach((recipeName) => {
+          recipes[recipeName].sort((a, b) => {
+            const orderA = parseInt(a.order) || 999;
+            const orderB = parseInt(b.order) || 999;
+            return orderA - orderB;
+          });
+        });
+
+        return recipes;
+      }
+
+      /**
+       * Exporta todas las recetas a CSV
+       */
+      function exportRecipesToCSV() {
+        let csvContent = "Ricetta;Ingrediente;#;Quantità;Tolleranza\n";
+
+        Object.keys(recipeManager.recipes).forEach((recipeName) => {
+          const ingredients = recipeManager.recipes[recipeName];
+          ingredients.forEach((ingredient, index) => {
+            const quantity = ingredient.grams.toFixed(3).replace(".", ",");
+            csvContent += `${recipeName};${ingredient.name};${index + 1};${quantity};0,020\n`;
+          });
+        });
+
+        // Crear descarga
+        const element = document.createElement("a");
+        element.setAttribute(
+          "href",
+          "data:text/csv;charset=utf-8," + encodeURIComponent(csvContent),
+        );
+        element.setAttribute("download", "ricette_export.csv");
+        element.style.display = "none";
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+      }
+
+      /**
+       * Abre el modal para gestionar recetas
+       */
+      function openManageRecipesModal() {
+        const modal = document.getElementById("manage-recipes-modal");
+        modal.style.display = "flex";
+        isModalOpen = true;
+
+        // Cargar lista de recetas existentes
+        loadExistingRecipes();
+
+        // Limpiar formulario para nueva receta
+        document.getElementById("recipe-name-input").value = "";
+        document.getElementById("ingredients-list").innerHTML = "";
+        addIngredientRow(); // Agregar una fila vacía
+      }
+
+      /**
+       * Cierra el modal de gestión de recetas
+       */
+      function closeManageRecipesModal() {
+        document.getElementById("manage-recipes-modal").style.display = "none";
+        isModalOpen = false;
+      }
+
+      /**
+       * Carga la lista de recetas existentes
+       */
+      function loadExistingRecipes() {
+        const list = document.getElementById("existing-recipes-list");
+        list.innerHTML = "";
+
+        Object.keys(recipeManager.recipes).forEach((recipeName) => {
+          const recipeDiv = document.createElement("div");
+          recipeDiv.className =
+            "bg-gray-50 p-4 rounded-lg mb-3 flex justify-between items-center";
+          recipeDiv.innerHTML = `
+            <div>
+              <h4 class="font-semibold text-gray-800">${recipeName}</h4>
+              <p class="text-xs text-gray-500">${recipeManager.recipes[recipeName].length} ingredienti</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="edit-recipe-btn px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600" data-recipe="${recipeName}">
+                Modifica
+              </button>
+              <button class="delete-recipe-btn px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600" data-recipe="${recipeName}">
+                Elimina
+              </button>
+            </div>
+          `;
+          list.appendChild(recipeDiv);
+        });
+
+        // Agregar event listeners a los botones
+        document.querySelectorAll(".edit-recipe-btn").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const recipeName = e.target.getAttribute("data-recipe");
+            editRecipe(recipeName);
+          });
+        });
+
+        document.querySelectorAll(".delete-recipe-btn").forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            const recipeName = e.target.getAttribute("data-recipe");
+            deleteRecipe(recipeName);
+          });
+        });
+      }
+
+      /**
+       * Agrega una fila vacía de ingrediente
+       */
+      function addIngredientRow(name = "", grams = "") {
+        const container = document.getElementById("ingredients-list");
+        const rowDiv = document.createElement("div");
+        rowDiv.className = "ingredient-row";
+        rowDiv.innerHTML = `
+          <div class="flex gap-2 mb-2">
+            <div class="flex-1">
+              <input
+                type="text"
+                placeholder="Ingrediente"
+                value="${name}"
+                required
+                class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-purple-500 focus:border-purple-500"
+              />
+              <div class="ingredient-name-error error-message" style="display: none;">
+                ⚠️ Nome ingrediente obbligatorio
+              </div>
+            </div>
+            <div class="w-28">
+              <input
+                type="number"
+                placeholder="Grammi"
+                value="${grams}"
+                step="0.001"
+                required
+                min="0"
+                class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-purple-500 focus:border-purple-500"
+              />
+              <div class="ingredient-grams-error error-message" style="display: none;">
+                ⚠️ Quantità obbligatoria
+              </div>
+            </div>
+            <button
+              class="remove-ingredient-btn px-2 py-1 bg-red-400 text-white text-xs rounded hover:bg-red-500 self-center"
+            >
+              ✕
+            </button>
+          </div>
+        `;
+
+        rowDiv
+          .querySelector(".remove-ingredient-btn")
+          .addEventListener("click", () => {
+            rowDiv.remove();
+          });
+
+        container.appendChild(rowDiv);
+      }
+
+      /**
+       * Edita una receta existente
+       */
+      function editRecipe(recipeName) {
+        const recipe = recipeManager.recipes[recipeName];
+        document.getElementById("recipe-name-input").value = recipeName;
+        document.getElementById("ingredients-list").innerHTML = "";
+
+        recipe.forEach((ingredient) => {
+          addIngredientRow(ingredient.name, ingredient.grams);
+        });
+      }
+
+      /**
+       * Elimina una receta
+       */
+      function deleteRecipe(recipeName) {
+        if (confirm(`¿Eliminar la receta "${recipeName}"?`)) {
+          delete recipeManager.recipes[recipeName];
+          loadExistingRecipes();
+          updateRecipeSelector();
+        }
+      }
+
+      /**
+       * Guarda una receta nueva o editada con validación visual
+       */
+      function saveRecipe() {
+        // Limpiar errores previos
+        clearValidationErrors();
+
+        const recipeNameInput = document.getElementById("recipe-name-input");
+        const recipeName = recipeNameInput.value.trim();
+        let hasErrors = false;
+
+        // Validar nombre de receta
+        if (!recipeName) {
+          recipeNameInput.classList.add("input-error");
+          document.getElementById("recipe-name-error").style.display = "block";
+          hasErrors = true;
+        } else {
+          recipeNameInput.classList.remove("input-error");
+          document.getElementById("recipe-name-error").style.display = "none";
+        }
+
+        // Validar ingredientes
+        const ingredients = [];
+        let ingredientCount = 0;
+
+        document.querySelectorAll(".ingredient-row").forEach((row) => {
+          const inputs = row.querySelectorAll(
+            "input[type='text'], input[type='number']",
+          );
+          const nameInput = inputs[0];
+          const gramsInput = inputs[1];
+          const name = nameInput.value.trim();
+          const gramsValue = gramsInput.value.trim();
+
+          ingredientCount++;
+
+          let rowHasError = false;
+
+          // Validar nombre del ingrediente
+          if (!name) {
+            nameInput.classList.add("input-error");
+            row.querySelector(".ingredient-name-error").style.display = "block";
+            rowHasError = true;
+            hasErrors = true;
+          } else {
+            nameInput.classList.remove("input-error");
+            row.querySelector(".ingredient-name-error").style.display = "none";
+          }
+
+          // Validar cantidad
+          if (!gramsValue) {
+            gramsInput.classList.add("input-error");
+            row.querySelector(".ingredient-grams-error").style.display =
+              "block";
+            rowHasError = true;
+            hasErrors = true;
+          } else {
+            const grams = parseFloat(gramsValue);
+            if (isNaN(grams) || grams <= 0) {
+              gramsInput.classList.add("input-error");
+              row.querySelector(".ingredient-grams-error").textContent =
+                "⚠️ Deve essere un numero positivo";
+              row.querySelector(".ingredient-grams-error").style.display =
+                "block";
+              rowHasError = true;
+              hasErrors = true;
+            } else {
+              gramsInput.classList.remove("input-error");
+              row.querySelector(".ingredient-grams-error").style.display =
+                "none";
+              ingredients.push({ name, grams });
+            }
+          }
+        });
+
+        // Verificar que hay al menos un ingrediente válido
+        if (ingredients.length === 0) {
+          const errorDiv = document.createElement("div");
+          errorDiv.className = "error-message mt-2";
+          errorDiv.textContent =
+            "⚠️ Aggiungere almeno un ingrediente completo e valido";
+          const container = document.getElementById("ingredients-container");
+          container.appendChild(errorDiv);
+          setTimeout(() => errorDiv.remove(), 4000);
+          hasErrors = true;
+        }
+
+        // Si hay errores, no guardar
+        if (hasErrors) {
+          return;
+        }
+
+        // Salvare la ricetta
+        recipeManager.recipes[recipeName] = ingredients;
+        updateRecipeSelector();
+        loadExistingRecipes();
+
+        // Mostrare messaggio de successo con notifica visual
+        showSuccessMessage(`✓ Ricetta "${recipeName}" salvata con successo!`);
+
+        // Pulire il modulo
+        clearRecipeForm();
+      }
+
+      /**
+       * Limpia los mensajes de error de validación
+       */
+      function clearValidationErrors() {
+        document.querySelectorAll(".input-error").forEach((input) => {
+          input.classList.remove("input-error");
+        });
+        document.querySelectorAll(".error-message").forEach((msg) => {
+          msg.style.display = "none";
+        });
+      }
+
+      /**
+       * Muestra un mensaje de successo en lugar de alert
+       */
+      function showSuccessMessage(message) {
+        const successDiv = document.createElement("div");
+        successDiv.className =
+          "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center gap-2 z-50 animate-pulse";
+        successDiv.innerHTML = `<span>${message}</span>`;
+        document.body.appendChild(successDiv);
+        setTimeout(() => {
+          successDiv.remove();
+        }, 3000);
+      }
+
+      /**
+       * Pulisce il modulo di creazione/modifica di ricette
+       */
+      function clearRecipeForm() {
+        document.getElementById("recipe-name-input").value = "";
+        document.getElementById("ingredients-list").innerHTML = "";
+        addIngredientRow(); // Aggiungere una riga vuota per il prossimo ingrediente
+      }
+
+      /**
+       * Actualiza el selector de recetas en la interfaz
+       */
+      function updateRecipeSelector() {
+        const selector = document.getElementById("recipe-selector");
+        const currentValue = selector.value;
+
+        selector.innerHTML =
+          '<option value="">-- Seleziona una ricetta --</option>';
+        recipeManager.getRecipeNames().forEach((name) => {
+          const option = document.createElement("option");
+          option.value = name;
+          option.textContent = name;
+          selector.appendChild(option);
+        });
+
+        selector.value = currentValue;
+      }
+
+      // =================================================================
       // 5. FUNCIONES AUXILIARES DE RECALCULADO Y MODAL
       // =================================================================
 
@@ -1333,6 +1884,107 @@
         recipePrepController.displayManager.setZeroButtonEnabled(true);
         // Asegurar que el botón de recalcular esté oculto al inicio
         recipePrepController.displayManager.setRecalcButtonVisibility(false);
+
+        // =================================================================
+        // 7. LÓGICA PARA IMPORTAR/EXPORTAR CSV Y GESTIONAR RECETAS
+        // =================================================================
+
+        // Importar CSV
+        document
+          .getElementById("import-csv-btn")
+          .addEventListener("click", () => {
+            document.getElementById("import-csv-modal").style.display = "flex";
+            isModalOpen = true;
+          });
+
+        document
+          .getElementById("cancel-import-btn")
+          .addEventListener("click", () => {
+            document.getElementById("import-csv-modal").style.display = "none";
+            document.getElementById("csv-file-input").value = "";
+            document.getElementById("csv-import-status").innerHTML = "";
+            isModalOpen = false;
+          });
+
+        document
+          .getElementById("confirm-import-btn")
+          .addEventListener("click", () => {
+            const fileInput = document.getElementById("csv-file-input");
+            const file = fileInput.files[0];
+            if (!file) {
+              document.getElementById("csv-import-status").innerHTML =
+                '<span class="text-red-600">⚠️ Per favore, seleziona un file CSV</span>';
+              return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+              try {
+                const csv = e.target.result;
+                const recipes = parseCSVToRecipes(csv);
+                recipeManager.recipes = recipes;
+
+                // Aggiornare il selettore di ricette
+                updateRecipeSelector();
+
+                document.getElementById("csv-import-status").innerHTML =
+                  `<span class="text-green-600">✓ Importate ${
+                    Object.keys(recipes).length
+                  } ricette con successo!</span>`;
+
+                // Chiudere il modal dopo 2 secondi
+                setTimeout(() => {
+                  document.getElementById("import-csv-modal").style.display =
+                    "none";
+                  document.getElementById("csv-file-input").value = "";
+                  document.getElementById("csv-import-status").innerHTML = "";
+                  isModalOpen = false;
+                }, 2000);
+              } catch (error) {
+                document.getElementById("csv-import-status").innerHTML =
+                  `<span class="text-red-600">❌ Errore: ${error.message}</span>`;
+              }
+            };
+            reader.readAsText(file);
+          });
+
+        // Esportare CSV
+        document
+          .getElementById("export-csv-btn")
+          .addEventListener("click", () => {
+            exportRecipesToCSV();
+          });
+
+        // Gestisci ricette
+        document
+          .getElementById("manage-recipes-btn")
+          .addEventListener("click", () => {
+            openManageRecipesModal();
+          });
+
+        document
+          .getElementById("close-manage-modal")
+          .addEventListener("click", () => {
+            closeManageRecipesModal();
+          });
+
+        document
+          .getElementById("cancel-manage-btn")
+          .addEventListener("click", () => {
+            closeManageRecipesModal();
+          });
+
+        document
+          .getElementById("add-ingredient-btn")
+          .addEventListener("click", () => {
+            addIngredientRow();
+          });
+
+        document
+          .getElementById("save-recipe-btn")
+          .addEventListener("click", () => {
+            saveRecipe();
+          });
       });
     </script>
   </body>
