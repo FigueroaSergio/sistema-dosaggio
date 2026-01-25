@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
@@ -223,6 +223,36 @@
           </button>
         </div>
 
+        <!-- MODAL: Pulisci la Bilancia -->
+        <div
+          id="clean-scale-modal"
+          class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          style="display: none"
+        >
+          <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">
+              ⚠️ Prepara la Bilancia
+            </h2>
+            <p class="text-gray-600 mb-6">
+              Per favore, assicurati che la bilancia sia vuota e pulita. Rimuovi
+              qualsiasi elemento o residuo dalla superficie di pesatura.
+            </p>
+            <div
+              class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6"
+            >
+              <p class="text-yellow-800 font-medium">
+                La bilancia deve essere completamente libera prima di iniziare.
+              </p>
+            </div>
+            <button
+              id="clean-scale-confirm-btn"
+              class="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150"
+            >
+              Fatto ✓
+            </button>
+          </div>
+        </div>
+
         <!-- MODAL: Chiedi Quantità Desiderata -->
         <div
           id="quantity-modal"
@@ -369,7 +399,7 @@
         setWeight(newWeightKgString) {
           // Entrada: "X,XX" (en Kg). Reemplazamos la coma por punto para JS.
           const numericWeightKg = parseFloat(
-            newWeightKgString.replace(",", ".")
+            newWeightKgString.replace(",", "."),
           );
           console.log(newWeightKgString);
 
@@ -439,15 +469,13 @@
 
         // Método requerido por el WeightPublisher (Observer)
         update(rawWeightGrams) {
-          console.log("update");
-
           this.currentWeightGrams = rawWeightGrams;
 
           // Actualiza siempre los pesos de referencia
           this.displayManager.updateStatus(
             rawWeightGrams,
             this.tareWeight,
-            this.accumulatedWeight
+            this.accumulatedWeight,
           );
 
           if (this.currentIngredientIndex === -1) {
@@ -456,7 +484,7 @@
               this.currentWeightGrams,
               "Pesare Contenitore",
               null,
-              0
+              0,
             );
             this.displayManager.setZeroButtonEnabled(true);
           } else if (this.currentIngredientIndex >= 0) {
@@ -470,7 +498,7 @@
               this.currentWeightGrams,
               null,
               null,
-              0
+              0,
             );
             this.displayManager.setZeroButtonEnabled(true);
           }
@@ -495,7 +523,7 @@
           this.displayManager.setNextButtonVisibility(true); // Mostrar botón Siguiente
           this.displayManager.setNextButtonText(false, true); // Mostrare "Tarare" nel primo passo (TARA)
           this.displayManager.showInstructions(
-            "Passo 1: Metti il contenitore vuoto sulla bilancia e premi <strong>SUCCESSIVO</strong> per impostare la tara."
+            "Passo 1: Metti il contenitore vuoto sulla bilancia e premi <strong>SUCCESSIVO</strong> per impostare la tara.",
           );
 
           // **CORRECCIÓN:** Habilitar el botón Poner a Cero inmediatamente al entrar en modo TARA.
@@ -506,7 +534,7 @@
             0.0,
             "Pesare Contenitore",
             null,
-            0
+            0,
           );
         }
         saveWeight() {
@@ -568,8 +596,8 @@
             const netTotal = this.accumulatedWeight - this.tareWeight;
             this.displayManager.showInstructions(
               `✅ Ricetta completata! Peso netto totale: <strong>${netTotal.toFixed(
-                2
-              )}</strong>g.`
+                2,
+              )}</strong>g.`,
             );
             this.displayManager.updateCurrentIngredient(null);
             this.displayManager.resetUI(); // Reset UI
@@ -590,10 +618,10 @@
           this.displayManager.showInstructions(
             `Passo ${this.currentIngredientIndex + 2}: Aggiungere <strong>${
               ingredient.name
-            }</strong> (richiesti: ${ingredient.grams}g).`
+            }</strong> (richiesti: ${ingredient.grams}g).`,
           );
           this.displayManager.updateCurrentIngredient(
-            this.currentIngredientIndex
+            this.currentIngredientIndex,
           );
 
           // FIX: Forzar una actualización de la UI inmediatamente después de tarar/cambiar de ingrediente.
@@ -626,7 +654,7 @@
             addedGrams, // Puede ser negativo
             ingredient.name,
             requiredGrams,
-            percentage
+            percentage,
           );
 
           // Actualizar Tabla
@@ -634,7 +662,7 @@
             this.currentIngredientIndex,
             addedGrams,
             requiredGrams,
-            percentage
+            percentage,
           );
 
           // Mostrar/ocultar el botón de recalcular si hay overflow (>100%) en CUALQUIER ingrediente
@@ -645,8 +673,8 @@
               i === this.currentIngredientIndex
                 ? addedGrams
                 : this.weightIngredients && this.weightIngredients[i]
-                ? this.weightIngredients[i]
-                : 0;
+                  ? this.weightIngredients[i]
+                  : 0;
             if (req > 0) {
               const percent = (added / req) * 100;
               if (percent > 100) {
@@ -673,8 +701,8 @@
                 ? this.currentWeightGrams -
                   (this.getAccumulatedWeight() - this.getPreviusWeight())
                 : this.weightIngredients && this.weightIngredients[i]
-                ? this.weightIngredients[i]
-                : 0;
+                  ? this.weightIngredients[i]
+                  : 0;
             if (req > 0) {
               const factor = added / req;
               if (factor > 1) {
@@ -695,7 +723,7 @@
           const alreadyAll = this.recipe.map((_, i) =>
             this.weightIngredients && this.weightIngredients[i]
               ? this.weightIngredients[i]
-              : 0
+              : 0,
           );
 
           // Aplicar nueva receta escalada usando el factor más alto (redondeo a 2 decimales)
@@ -720,8 +748,8 @@
               j === idx
                 ? currentAddedGrams
                 : this.weightIngredients && this.weightIngredients[j]
-                ? this.weightIngredients[j]
-                : 0;
+                  ? this.weightIngredients[j]
+                  : 0;
             const percent = req > 0 ? (added / req) * 100 : 100;
             this.displayManager.updateTableProgress(j, added, req, percent);
           }
@@ -735,13 +763,13 @@
             currentAddedGrams,
             ingredient.name,
             reqCurrent,
-            percentCurrent
+            percentCurrent,
           );
 
           this.displayManager.showInstructions(
             `È stata generata una ricetta scalata che mantiene le proporzioni originali (fattore: ${highestFactor.toFixed(
-              3
-            )}).`
+              3,
+            )}).`,
           );
 
           this.displayManager.setRecalcButtonVisibility(false);
@@ -803,14 +831,14 @@
           addedGrams,
           ingredientName,
           requiredGrams,
-          percentage
+          percentage,
         ) {
           const addedDisplay = document.getElementById("added-weight-display");
           const targetDisplay = document.getElementById(
-            "target-weight-display"
+            "target-weight-display",
           );
           const progressBarContainer = document.getElementById(
-            "main-progress-bar-container"
+            "main-progress-bar-container",
           );
           const progressBar = document.getElementById("main-progress-bar");
           const percentText = document.getElementById("main-progress-percent");
@@ -838,7 +866,7 @@
             progressBar.className = `w-full ${barColorClass}`;
             percentText.className = `text-sm font-medium text-center mt-1 ${barColorClass.replace(
               "bar-",
-              "progress-"
+              "progress-",
             )}`;
 
             // La barra de progreso solo puede ir de 0 a 100, así que la limitamos visualmente
@@ -854,7 +882,7 @@
             // Modo Ingrediente
             targetDisplay.innerHTML = `<span class="text-lg font-bold text-gray-800">${ingredientName}</span>
                                                <span class="text-sm font-semibold text-gray-500">| ${requiredGrams.toFixed(
-                                                 2
+                                                 2,
                                                )}g Richiesti</span>`;
           } else {
             // Estado inicial o finalizado/inactivo
@@ -866,9 +894,8 @@
 
         // Renderiza la tabla de ingredientes de la receta
         renderRecipe(recipe, name) {
-          document.getElementById(
-            "prep-title"
-          ).textContent = `Ricetta: ${name}`;
+          document.getElementById("prep-title").textContent =
+            `Ricetta: ${name}`;
           this.setNextButtonVisibility(true);
 
           const tbody = document.getElementById("recipe-table-body");
@@ -883,8 +910,8 @@
                           item.name
                         }</td>
                         <td id="required-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">${item.grams.toFixed(
-              2
-            )}g</td>
+                          2,
+                        )}g</td>
                         <td id="added-${index}" class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-semibold">0.00g</td>
                         <td class="px-4 py-3 whitespace-nowrap">
                             <progress id="progress-${index}" value="0" max="100" class="w-full bar-color-black"></progress>
@@ -922,7 +949,7 @@
           // Aplicar resaltado al ingrediente actual
           if (index >= 0) {
             const currentRow = document.getElementById(
-              `ingredient-row-${index}`
+              `ingredient-row-${index}`,
             );
             if (currentRow) {
               currentRow.classList.add("current-ingredient-row");
@@ -947,7 +974,7 @@
 
             const addedCell = document.getElementById(`added-${index}`);
             const progressElement = document.getElementById(
-              `progress-${index}`
+              `progress-${index}`,
             );
             const percentElement = document.getElementById(`percent-${index}`);
 
@@ -960,7 +987,7 @@
             percentElement.textContent = percentage.toFixed(0) + "%";
             percentElement.className = `px-4 py-3 whitespace-nowrap text-sm ${barColorClass.replace(
               "bar-",
-              "progress-"
+              "progress-",
             )}`;
           }
         }
@@ -1027,9 +1054,8 @@
         resetUI() {
           console.log("reset");
 
-          document.getElementById(
-            "prep-title"
-          ).textContent = `Dettaglio della Ricetta`;
+          document.getElementById("prep-title").textContent =
+            `Dettaglio della Ricetta`;
           this.setNextButtonVisibility(false);
           document.getElementById("main-progress-bar-container").style.display =
             "none";
@@ -1042,7 +1068,7 @@
           // Importante: Reiniciar el display principal a 0.00 y el mensaje inicial
           this.updateMainWeightDisplay(0.0, null, null, 0);
           this.showInstructions(
-            "👋 Seleziona una ricetta per iniziare la preparazione."
+            "👋 Seleziona una ricetta per iniziare la preparazione.",
           );
         }
       }
@@ -1078,6 +1104,23 @@
       }
 
       /**
+       * Mostra il modal per pulire la bilancia
+       */
+      function showCleanScaleModal(recipeName) {
+        isModalOpen = true;
+        const modal = document.getElementById("clean-scale-modal");
+        modal.style.display = "flex";
+      }
+
+      /**
+       * Nascondi il modal di pulizia della bilancia
+       */
+      function hideCleanScaleModal() {
+        isModalOpen = false;
+        document.getElementById("clean-scale-modal").style.display = "none";
+      }
+
+      /**
        * Mostra il modal per chiedere la quantità desiderata
        */
       function showQuantityModal(recipeName) {
@@ -1092,7 +1135,7 @@
 
         // Mostra info sulla ricetta
         recipeInfo.innerHTML = `<strong>Ricetta:</strong> ${recipeName}<br/><strong>Peso totale originale:</strong> ${totalWeight.toFixed(
-          2
+          2,
         )}g`;
 
         // Pulisci l'input
@@ -1122,7 +1165,7 @@
         // Scala la ricetta
         const scaledRecipe = scaleRecipeToQuantity(
           baseRecipe,
-          desiredQuantityGrams
+          desiredQuantityGrams,
         );
 
         // Aggiorna il peso della ricetta nel recipeManager temporaneamente
@@ -1158,13 +1201,13 @@
 
       document.addEventListener("keydown", (event) => {
         // Prevenimos que la tecla Enter haga algo más (como enviar un formulario)
-        console.log(event.key);
+        // console.log(event.key);
 
         if (event.key === "Enter") {
           const finalReading = buffer.trim();
           buffer = "";
-          console.log(buffer);
-          console.log(isModalOpen);
+          // console.log(buffer);
+          // console.log(isModalOpen);
 
           // No procesar la lectura de la báscula si el modal está abierto
 
@@ -1173,7 +1216,7 @@
             scalePublisher.setWeight(finalReading);
           } else {
             console.warn(
-              `[Scale Input] Lettura bilancia non valida o vuota: "${finalReading}". Il formato atteso è "X,XX" (in Kg).`
+              `[Scale Input] Lettura bilancia non valida o vuota: "${finalReading}". Il formato atteso è "X,XX" (in Kg).`,
             );
           }
 
@@ -1212,10 +1255,23 @@
               showQuantityModal(selectedRecipe);
             } else {
               // Feedback visual en lugar de alert
-              document.getElementById(
-                "current-instruction"
-              ).innerHTML = `<span class="text-red-600">⚠️ Per favore, seleziona una ricetta valida per iniziare.</span>`;
+              document.getElementById("current-instruction").innerHTML =
+                `<span class="text-red-600">⚠️ Per favore, seleziona una ricetta valida per iniziare.</span>`;
             }
+          });
+
+        // Event listener para confirmar la limpieza de la bilancia
+        document
+          .getElementById("clean-scale-confirm-btn")
+          .addEventListener("click", () => {
+            const desiredQuantityInput = document.getElementById(
+              "desired-quantity-input",
+            );
+            const desiredQuantity = parseFloat(desiredQuantityInput.value);
+            const selectedRecipe =
+              document.getElementById("recipe-selector").value;
+            hideCleanScaleModal();
+            startPreparationWithQuantity(selectedRecipe, desiredQuantity);
           });
 
         // Event listener para confirmar la cantidad desiderada
@@ -1224,19 +1280,19 @@
           .addEventListener("click", () => {
             const selectedRecipe = selector.value;
             const desiredQuantityInput = document.getElementById(
-              "desired-quantity-input"
+              "desired-quantity-input",
             );
             const desiredQuantity = parseFloat(desiredQuantityInput.value);
 
             if (!desiredQuantity || desiredQuantity <= 0) {
               alert(
-                "Per favore, inserisci una quantità valida (maggiore di 0)."
+                "Per favore, inserisci una quantità valida (maggiore di 0).",
               );
               return;
             }
 
             hideQuantityModal();
-            startPreparationWithQuantity(selectedRecipe, desiredQuantity);
+            showCleanScaleModal(selectedRecipe);
           });
 
         // Event listener para cancelar el modal
