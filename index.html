@@ -1324,10 +1324,13 @@
       /**
        * Abre el modal para gestionar recetas
        */
+      let originalRecipeName = null; // Variable para rastrear si estamos editando una receta
+
       function openManageRecipesModal() {
         const modal = document.getElementById("manage-recipes-modal");
         modal.style.display = "flex";
         isModalOpen = true;
+        originalRecipeName = null; // Reset para nueva receta
 
         // Cargar lista de recetas existentes
         loadExistingRecipes();
@@ -1446,6 +1449,7 @@
        * Edita una receta existente
        */
       function editRecipe(recipeName) {
+        originalRecipeName = recipeName; // Guardar el nombre original
         const recipe = recipeManager.recipes[recipeName];
         document.getElementById("recipe-name-input").value = recipeName;
         document.getElementById("ingredients-list").innerHTML = "";
@@ -1477,10 +1481,23 @@
         const recipeName = recipeNameInput.value.trim();
         let hasErrors = false;
 
-        // Validar nombre de receta
+        // Validar nombre de receta vacío
         if (!recipeName) {
           recipeNameInput.classList.add("input-error");
           document.getElementById("recipe-name-error").style.display = "block";
+          document.getElementById("recipe-name-error").textContent =
+            "⚠️ Nome ricetta obbligatorio";
+          hasErrors = true;
+        }
+        // Validar que el nombre no exista (a menos que sea el mismo de una edición)
+        else if (
+          recipeManager.recipes[recipeName] &&
+          recipeName !== originalRecipeName
+        ) {
+          recipeNameInput.classList.add("input-error");
+          document.getElementById("recipe-name-error").style.display = "block";
+          document.getElementById("recipe-name-error").textContent =
+            "⚠️ Questa ricetta esiste già";
           hasErrors = true;
         } else {
           recipeNameInput.classList.remove("input-error");
@@ -1558,6 +1575,11 @@
           return;
         }
 
+        // Si estamos editando y el nombre cambió, eliminar la receta anterior
+        if (originalRecipeName && originalRecipeName !== recipeName) {
+          delete recipeManager.recipes[originalRecipeName];
+        }
+
         // Salvare la ricetta
         recipeManager.recipes[recipeName] = ingredients;
         updateRecipeSelector();
@@ -1603,6 +1625,7 @@
         document.getElementById("recipe-name-input").value = "";
         document.getElementById("ingredients-list").innerHTML = "";
         addIngredientRow(); // Aggiungere una riga vuota per il prossimo ingrediente
+        originalRecipeName = null; // Reset del nome originale
       }
 
       /**
