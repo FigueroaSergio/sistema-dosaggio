@@ -1,13 +1,15 @@
-<script setup>
+<script setup lang="ts">
 import Modal from "./Modal.vue";
+defineEmits<{ (e: "close-modal"): void; (e: "confirm"): void }>();
 const { active } = defineProps({ active: Boolean });
 </script>
 <template>
-  <Modal :active="active">
-    <div class="bg-white rounded-xl shadow-2xl p-8 max-w-md w-full mx-4">
-      <h2 class="text-2xl font-bold text-gray-800 mb-4">
-        ⚠️ Prepara la Bilancia
-      </h2>
+  <Modal
+    :active="active"
+    title="⚠️ Prepara la Bilancia"
+    @close-modal="$emit('close-modal')"
+  >
+    <div>
       <p class="text-gray-600 mb-6">
         Per favore, assicurati che la bilancia sia vuota e pulita. Rimuovi
         qualsiasi elemento o residuo dalla superficie di pesatura.
@@ -22,6 +24,7 @@ const { active } = defineProps({ active: Boolean });
       <button
         id="clean-scale-confirm-btn"
         class="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150"
+        @click="$emit('confirm')"
       >
         Fatto ✓
       </button>
