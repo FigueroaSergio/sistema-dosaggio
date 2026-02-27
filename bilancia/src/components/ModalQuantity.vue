@@ -3,16 +3,25 @@ import { computed, ref } from "vue";
 import { Recipe } from "../composables/useRecipes";
 import Modal from "./Modal.vue";
 const model = defineModel<number | null>();
-defineEmits<{ (e: "close-modal"): void; (e: "confirm"): void }>();
-
+const emits = defineEmits<{ (e: "close-modal"): void; (e: "confirm"): void }>();
 const { active, recipe } = defineProps<{
   active: Boolean;
   recipe: Recipe | undefined;
 }>();
+const showError = ref(false);
 const name = computed(() => recipe?.name ?? "");
 const total = computed(() => {
   return recipe?.ingredients.reduce((prev, cur) => prev + cur.grams, 0) ?? 0;
 });
+const error = computed(() => !model.value || model.value <= 0);
+const onConfirm = () => {
+  if (error.value) {
+    showError.value = true;
+    return;
+  }
+  showError.value = false;
+  emits("confirm");
+};
 </script>
 <template>
   <Modal
@@ -34,12 +43,16 @@ const total = computed(() => {
         id="desired-quantity-input"
         type="number"
         @input="if (model && model < 1) model = 0;"
-        min="0"
+        min="1"
         step="0.1"
         v-model.number="model"
         placeholder="es. 500"
-        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150"
+        :class="`w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500 transition duration-150 ${showError && error ? 'input-error' : ''}`"
+        :aria-invalid="error"
       />
+      <div class="error-message" v-if="error && showError">
+        Per favore, inserisci una quantità valida (maggiore di 0)
+      </div>
     </div>
     <div
       id="recipe-info"
@@ -61,7 +74,7 @@ const total = computed(() => {
       <button
         id="confirm-quantity-btn"
         class="flex-1 px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
-        @click="$emit('confirm')"
+        @click="onConfirm"
       >
         Conferma
       </button>

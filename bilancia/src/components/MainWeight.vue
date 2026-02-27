@@ -1,32 +1,34 @@
 <script setup lang="ts">
+import { computed } from "vue";
 import {
   IngredientPreparation,
   Preparation,
   getPercentage,
 } from "../composables/usePreparation";
-defineEmits<{ (e: "re-calc"): void; (e: "next"): void }>();
+defineEmits<{ (e: "re-calc"): void; (e: "next"): void; (e: "finish"): void }>();
 const props = defineProps<{
   ingredient: IngredientPreparation;
   preparation: Preparation;
   step: number;
 }>();
+const finish = computed(
+  () =>
+    props.preparation.ingredients.length - 1 === props.step ||
+    props.preparation.ingredients.every((ing) => ing.weight !== 0),
+);
 </script>
 <template>
   <div
     id="main-status-card"
     class="bg-white shadow-xl rounded-xl p-6 mb-8 border border-teal-200"
   >
-    <h2 class="text-lg font-semibold text-gray-700 mb-3">
-      Peso Netto Aggiunto
-    </h2>
-
     <!-- DISPLAY PRINCIPAL -->
     <div class="flex flex-col items-center justify-center py-4">
       <!-- Main Weight Display -->
       <div class="flex items-end">
         <span
           id="added-weight-display"
-          class="weight-main-display text-gray-800 transition-colors duration-300 text-3xl"
+          class="font-semibold text-gray-800 transition-colors duration-300 text-7xl"
           >{{ ingredient.weight }}
         </span>
         <span class="text-3xl text-gray-500 ml-2 mb-2">g</span>
@@ -35,9 +37,15 @@ const props = defineProps<{
       <!-- Small Instruction/Target Text -->
       <p
         id="target-weight-display"
-        class="text-center text-sm text-gray-400 font-semibold"
+        class="text-center text-gray-700 font-semibold text-lg"
       >
-        Peso netto (Peso lordo - Tara precedente) {{ ingredient }}
+        <template v-if="step < 0">
+          Peso netto (Peso lordo - Tara precedente)
+        </template>
+        <template v-else>
+          {{ preparation.ingredients[step].name }}:
+          {{ preparation.ingredients[step].grams.toFixed(2) }} g
+        </template>
       </p>
 
       <!-- Current Ingredient Progress Bar -->
@@ -73,30 +81,33 @@ const props = defineProps<{
 
     <!-- ACCIONES DE PREPARACIÓN -->
     <div id="prep-actions" class="flex gap-4 mt-6 justify-center">
-      <button
-        id="next-ingredient-btn"
-        class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-        v-if="preparation.name"
-        @click="$emit('next')"
-      >
-        Ingrediente Successivo
-      </button>
-      <button
-        id="recalc-btn"
-        class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-        title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
-        v-if="preparation.name"
-        @click="$emit('re-calc')"
-      >
-        Ricalcola Quantità
-      </button>
+      <template v-if="preparation.name">
+        <button
+          id="next-ingredient-btn"
+          class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          @click="$emit('next')"
+        >
+          Ingrediente Successivo
+        </button>
+        <button
+          id="recalc-btn"
+          class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
+          @click="$emit('re-calc')"
+        >
+          Ricalcola Quantità
+        </button>
+        <button
+          id="finish-btn"
+          class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
+          v-if="finish"
+          @click="$emit('finish')"
+        >
+          Completa Ricetta
+        </button>
+      </template>
     </div>
   </div>
 </template>
-<style lang="css">
-.weight-main-display {
-  font-family: "Inter", sans-serif;
-  font-size: 4rem !important;
-  font-weight: 800;
-}
-</style>
+<style lang="css"></style>

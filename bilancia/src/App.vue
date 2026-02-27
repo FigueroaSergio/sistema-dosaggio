@@ -50,6 +50,7 @@ const {
   onUpdate,
   setStep,
   next,
+  reCalculate,
 } = usePreparation();
 
 watch(weight, (newWeight) => {
@@ -69,7 +70,6 @@ const startPreparation = () => {
   if (!quantity.value) {
     return;
   }
-  console.log(quantity);
 
   startRecipe(recipe.value, quantity.value);
   openClean.value = false;
@@ -77,6 +77,9 @@ const startPreparation = () => {
 const onConfirmQuantity = () => {
   openClean.value = true;
   openQuantity.value = false;
+};
+const onFinish = () => {
+  alert("FISNISH");
 };
 </script>
 
@@ -91,7 +94,7 @@ const onConfirmQuantity = () => {
     <div class="max-w-4xl mx-auto">
       <header class="text-center mb-8">
         <h1 class="text-4xl font-extrabold text-gray-900">
-          Sistema di Dosaggio Intelligente {{ quantity }}
+          Sistema di Dosaggio Intelligente
         </h1>
         <p class="text-gray-500">
           Guida passo-passo per le tue ricette.
@@ -114,6 +117,7 @@ const onConfirmQuantity = () => {
       <ModalManage
         :active="openManage"
         @close-modal="openManage = false"
+        :recipes="recipes"
       ></ModalManage>
       <ModalQuantity
         :active="openQuantity"
@@ -128,6 +132,8 @@ const onConfirmQuantity = () => {
         :preparation="preparation"
         :step="step"
         @next="next"
+        @re-calc="reCalculate"
+        @finish="onFinish"
       ></main-weight>
       <recipe
         :recipes="recipes"
@@ -145,4 +151,30 @@ const onConfirmQuantity = () => {
   </body>
 </template>
 
-<style scoped></style>
+<style>
+.input-error {
+  border-color: #ef4444 !important;
+  background: #ff000011;
+}
+
+.input-error::placeholder {
+  color: #dc2626;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  /* display: none; <- Crashes Chrome on hover */
+  -webkit-appearance: none;
+  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+}
+
+input[type="number"] {
+  -moz-appearance: textfield; /* Firefox */
+}
+</style>

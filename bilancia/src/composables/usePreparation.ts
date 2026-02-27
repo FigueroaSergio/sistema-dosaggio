@@ -79,6 +79,16 @@ export function usePreparation() {
       grams: +(ingredient.grams * scaleFactor).toFixed(2),
     }));
   };
+  const reCalculate = () => {
+    const percentage = getPercentage(preparation.ingredients[step.value]);
+    if (percentage <= 0) {
+      return;
+    }
+    const factor = percentage / 100;
+    preparation.ingredients.forEach((ing) => {
+      ing.grams = ing.grams * factor;
+    });
+  };
 
   const currentStep: ComputedRef<IngredientPreparation> = computed(() => {
     if (step.value === -1) {
@@ -98,6 +108,7 @@ export function usePreparation() {
     prev,
     startRecipe,
     onUpdate,
+    reCalculate,
     totalNet,
     total,
     currentStep,
