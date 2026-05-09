@@ -1,186 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
-import NavBar from "./components/NavBar.vue";
-import MainWeight from "./components/MainWeight.vue";
-import RecipeComponent from "./components/Recipe.vue";
 import "./index.css";
-import TableRecipe from "./components/TableRecipe.vue";
-import ModalHistory from "./components/ModalHistory.vue";
-import ModalClean from "./components/ModalClean.vue";
-import ModalImport from "./components/ModalImport.vue";
-import ModalQuantity from "./components/ModalQuantity.vue";
-import ModalManage from "./components/ModalManage.vue";
-import { useWeight } from "./composables/useWeight.ts";
-import { useRecipes, Recipe } from "./composables/useRecipes.ts";
-import { usePreparation } from "./composables/usePreparation.ts";
-import { useHistory } from "./composables/useHistory.ts";
-import { exportRecipesToCSV } from "./utils/csv-parser.ts";
-
-const openHistory = ref(false);
-const openImport = ref(false);
-const openExport = ref(false);
-const openManage = ref(false);
-const openClean = ref(false);
-const openQuantity = ref(false);
-const selectRecipe = ref("");
-const quantity = ref<number | null>(null);
-const recipe = computed(() => {
-  const recipe = recipes[selectRecipe.value];
-  if (!recipe) {
-    return;
-  }
-  return recipe;
-});
-const activeMain = computed(
-  () =>
-    !(
-      openHistory.value ||
-      openImport.value ||
-      openExport.value ||
-      openManage.value ||
-      openClean.value ||
-      openQuantity.value
-    ),
-);
-const { weight } = useWeight(activeMain);
-const { recipes, addRecipe, deleteRecipe } = useRecipes();
-const {
-  preparation,
-  currentStep,
-  step,
-  total,
-  startRecipe,
-  onUpdate,
-  setStep,
-  next,
-  reCalculate,
-  reset,
-} = usePreparation();
-const { history, addHistory } = useHistory();
-
-watch(weight, (newWeight) => {
-  onUpdate(newWeight);
-});
-
-const openQuantityModal = () => {
-  if (!recipe.value) {
-    return;
-  }
-  openQuantity.value = true;
-};
-const startPreparation = () => {
-  if (!recipe.value) {
-    return;
-  }
-  if (!quantity.value) {
-    return;
-  }
-
-  startRecipe(recipe.value, quantity.value);
-  openClean.value = false;
-};
-const onConfirmQuantity = () => {
-  openClean.value = true;
-  openQuantity.value = false;
-};
-const onFinish = () => {
-  addHistory(preparation);
-  reset();
-  selectRecipe.value = "";
-  quantity.value = null;
-};
-
-const onImportRecipes = (parsedRecipes: Recipe[]) => {
-  parsedRecipes.forEach((recipe) => {
-    addRecipe(recipe.name, recipe);
-  });
-};
-
-const onExportCsv = () => {
-  const csvData = exportRecipesToCSV(recipes);
-  const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", "recipes.csv");
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  openExport.value = false;
-};
 </script>
 
 <template>
-  <body class="bg-gray-50 min-h-screen p-4 md:p-8 font-sans">
-    <nav-bar
-      @click-history="openHistory = true"
-      @click-import-csv="openImport = true"
-      @click-export-csv="onExportCsv"
-      @click-manage="openManage = true"
-    ></nav-bar>
-    <div class="max-w-4xl mx-auto">
-      <header class="text-center mb-8">
-        <h1 class="text-4xl font-extrabold text-gray-900">
-          Sistema di Dosaggio Intelligente
-        </h1>
-        <p class="text-gray-500">
-          Guida passo-passo per le tue ricette.
-          <span class="font-bold">Inserimento peso in Kg.</span>
-        </p>
-      </header>
-      <ModalHistory
-        :active="openHistory"
-        :history="history"
-        @close-modal="openHistory = false"
-      ></ModalHistory>
-      <ModalClean
-        :active="openClean"
-        @close-modal="openClean = false"
-        @confirm="startPreparation"
-      ></ModalClean>
-      <ModalImport
-        :active="openImport"
-        @close-modal="openImport = false"
-        @import-recipes="onImportRecipes"
-      ></ModalImport>
-      <ModalManage
-        :active="openManage"
-        @close-modal="openManage = false"
-        :recipes="recipes"
-        @save-recipe="addRecipe"
-        @delete-recipe="deleteRecipe"
-      ></ModalManage>
-      <ModalQuantity
-        :active="openQuantity"
-        :recipe="recipe"
-        v-model="quantity"
-        @close-modal="openQuantity = false"
-        @confirm="onConfirmQuantity"
-      ></ModalQuantity>
-
-      <main-weight
-        :ingredient="currentStep"
-        :preparation="preparation"
-        :step="step"
-        @next="next"
-        @re-calc="reCalculate"
-        @finish="onFinish"
-      ></main-weight>
-      <RecipeComponent
-        :recipes="recipes"
-        v-model="selectRecipe"
-        :total="total"
-        :taraWeight="preparation.tareWeight"
-        @start="openQuantityModal"
-      ></RecipeComponent>
-      <table-recipe
-        :preparation="preparation"
-        :step="step"
-        @select="setStep"
-      ></table-recipe>
-    </div>
-  </body>
+  <router-view></router-view>
 </template>
 
 <style>
@@ -201,12 +24,11 @@ const onExportCsv = () => {
 }
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
-  /* display: none; <- Crashes Chrome on hover */
   -webkit-appearance: none;
-  margin: 0; /* <-- Apparently some margin are still there even though it's hidden */
+  margin: 0;
 }
 
 input[type="number"] {
-  -moz-appearance: textfield; /* Firefox */
+  -moz-appearance: textfield;
 }
 </style>

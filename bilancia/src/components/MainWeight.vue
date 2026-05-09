@@ -5,7 +5,12 @@ import {
   Preparation,
   getPercentage,
 } from "../composables/usePreparation";
-defineEmits<{ (e: "re-calc"): void; (e: "next"): void; (e: "finish"): void }>();
+defineEmits<{
+  (e: "re-calc"): void;
+  (e: "next"): void;
+  (e: "finish"): void;
+  (e: "save-recipe"): void;
+}>();
 const props = defineProps<{
   ingredient: IngredientPreparation;
   preparation: Preparation;
@@ -80,15 +85,8 @@ const finish = computed(
     </div>
 
     <!-- ACCIONES DE PREPARACIÓN -->
-    <div id="prep-actions" class="flex gap-4 mt-6 justify-center">
+    <div id="prep-actions" class="flex flex-wrap gap-4 mt-6 justify-center">
       <template v-if="preparation.name">
-        <button
-          id="next-ingredient-btn"
-          class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-          @click="$emit('next')"
-        >
-          Ingrediente Successivo
-        </button>
         <button
           id="recalc-btn"
           class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
@@ -97,6 +95,14 @@ const finish = computed(
         >
           Ricalcola Quantità
         </button>
+        <button
+          id="next-ingredient-btn"
+          class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          @click="$emit('next')"
+        >
+          Ingrediente Successivo
+        </button>
+
         <button
           id="finish-btn"
           class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"

@@ -6,8 +6,9 @@ export type HistoryEntry = {
   preparation: Preparation;
 };
 
+const history = reactive<HistoryEntry[]>([]);
+
 export function useHistory() {
-  const history = reactive<HistoryEntry[]>([]);
 
   const addHistory = (preparation: Preparation) => {
     history.push({
