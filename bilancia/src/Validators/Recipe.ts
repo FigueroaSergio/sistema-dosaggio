@@ -1,5 +1,4 @@
-import { Recipe } from "../composables/useRecipes";
-import { ObjectValidator, Schema } from "../utils/Validator";
+import { Schema } from "../utils/Validator";
 
 export const RecipeValidator = Schema.object().define({
   name: Schema.string().trim(),

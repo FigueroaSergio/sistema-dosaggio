@@ -1,20 +1,67 @@
-<script setup>
+<script setup lang="ts">
+import { ref } from "vue";
 import Modal from "./Modal.vue";
+import { parseCSVToRecipes } from "../utils/csv-parser";
+import type { Recipe } from "../composables/useRecipes";
 
-const { active } = defineProps({ active: Boolean });
+const { active } = defineProps<{ active: boolean }>();
+const emit = defineEmits<{
+  (e: "close-modal"): void;
+  (e: "import-recipes", recipes: Recipe[]): void;
+}>();
+
+const fileInput = ref<HTMLInputElement | null>(null);
+const importStatus = ref("");
+
+const onImport = () => {
+  const file = fileInput.value?.files?.[0];
+  if (!file) {
+    importStatus.value = "Seleziona un file prima di importare.";
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const content = e.target?.result as string;
+      const parsedRecipes = parseCSVToRecipes(content);
+      emit("import-recipes", parsedRecipes);
+      importStatus.value = `Importate ${parsedRecipes.length} ricette con successo.`;
+      setTimeout(() => {
+        emit("close-modal");
+        importStatus.value = "";
+        if (fileInput.value) fileInput.value.value = "";
+      }, 1500);
+    } catch (err) {
+      importStatus.value = "Errore durante l'analisi del file CSV.";
+    }
+  };
+  reader.readAsText(file);
+};
 </script>
 <template>
-  <Modal :active="active" title="📥 Importa Ricette da CSV">
+  <Modal
+    :active="active"
+    title="📥 Importa Ricette da CSV"
+    @close-modal="$emit('close-modal')"
+  >
     <div>
       <div class="mb-6">
         <input
+          ref="fileInput"
           id="csv-file-input"
           type="file"
           accept=".csv"
           class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"
         />
       </div>
-      <div id="csv-import-status" class="text-sm mb-4"></div>
+      <div
+        id="csv-import-status"
+        class="text-sm mb-4 text-green-600"
+        v-if="importStatus"
+      >
+        {{ importStatus }}
+      </div>
       <div class="flex gap-3">
         <button
           id="cancel-import-btn"
@@ -26,6 +73,7 @@ const { active } = defineProps({ active: Boolean });
         <button
           id="confirm-import-btn"
           class="flex-1 px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150"
+          @click="onImport"
         >
           Importa
         </button>

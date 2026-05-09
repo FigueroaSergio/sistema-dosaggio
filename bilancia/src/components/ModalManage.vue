@@ -1,12 +1,17 @@
 <script setup lang="ts">
 import Modal from "./Modal.vue";
-import { Recipe, RecipeRegistry } from "./../composables/useRecipes";
+import type { Recipe, RecipeRegistry } from "./../composables/useRecipes";
 import { reactive, ref } from "vue";
 import { RecipeValidator } from "../Validators/Recipe";
 import { ValidationError } from "../utils/Validator";
 const { active, recipes } = defineProps<{
-  active: Boolean;
+  active: boolean;
   recipes: RecipeRegistry;
+}>();
+const emit = defineEmits<{
+  (e: "close-modal"): void;
+  (e: "save-recipe", name: string, recipe: Recipe): void;
+  (e: "delete-recipe", name: string): void;
 }>();
 const validator = ref(RecipeValidator);
 const recipeData = reactive<Recipe>({
@@ -28,11 +33,25 @@ const onSave = () => {
     return;
   }
 
-  console.log(result);
+  emit("save-recipe", recipeData.name, JSON.parse(JSON.stringify(recipeData)));
+  emit("close-modal");
+
+  // Reset form
+  recipeData.name = "";
+  recipeData.ingredients = [];
+};
+
+const onEditRecipe = (recipe: Recipe) => {
+  recipeData.name = recipe.name;
+  recipeData.ingredients = JSON.parse(JSON.stringify(recipe.ingredients));
 };
 </script>
 <template>
-  <Modal :active="active" title="✏️ Gestisci Ricette">
+  <Modal
+    :active="active"
+    title="✏️ Gestisci Ricette"
+    @close-modal="$emit('close-modal')"
+  >
     <div>
       <!-- Sezione per creare/modificare ricetta -->
       <div class="mb-6">
@@ -165,13 +184,13 @@ const onSave = () => {
             <div class="flex gap-2">
               <button
                 class="edit-recipe-btn px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
-                data-recipe="${recipeName}"
+                @click="onEditRecipe(recipe)"
               >
                 Modifica
               </button>
               <button
                 class="delete-recipe-btn px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
-                data-recipe="${recipeName}"
+                @click="emit('delete-recipe', recipe.name)"
               >
                 Elimina
               </button>

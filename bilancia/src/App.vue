@@ -2,17 +2,20 @@
 import { ref, computed, watch } from "vue";
 import NavBar from "./components/NavBar.vue";
 import MainWeight from "./components/MainWeight.vue";
-import Recipe from "./components/Recipe.vue";
+import RecipeComponent from "./components/Recipe.vue";
 import "./index.css";
 import TableRecipe from "./components/TableRecipe.vue";
-import ModaHistory from "./components/ModaHistory.vue";
+import ModalHistory from "./components/ModalHistory.vue";
 import ModalClean from "./components/ModalClean.vue";
 import ModalImport from "./components/ModalImport.vue";
 import ModalQuantity from "./components/ModalQuantity.vue";
 import ModalManage from "./components/ModalManage.vue";
 import { useWeight } from "./composables/useWeight.ts";
-import { useRecipes } from "./composables/useRecipes.ts";
+import { useRecipes, Recipe } from "./composables/useRecipes.ts";
 import { usePreparation } from "./composables/usePreparation.ts";
+import { useHistory } from "./composables/useHistory.ts";
+import { exportRecipesToCSV } from "./utils/csv-parser.ts";
+
 const openHistory = ref(false);
 const openImport = ref(false);
 const openExport = ref(false);
@@ -40,7 +43,7 @@ const activeMain = computed(
     ),
 );
 const { weight } = useWeight(activeMain);
-const { recipes } = useRecipes();
+const { recipes, addRecipe, deleteRecipe } = useRecipes();
 const {
   preparation,
   currentStep,
@@ -51,7 +54,9 @@ const {
   setStep,
   next,
   reCalculate,
+  reset,
 } = usePreparation();
+const { history, addHistory } = useHistory();
 
 watch(weight, (newWeight) => {
   onUpdate(newWeight);
@@ -79,7 +84,30 @@ const onConfirmQuantity = () => {
   openQuantity.value = false;
 };
 const onFinish = () => {
-  alert("FISNISH");
+  addHistory(preparation);
+  reset();
+  selectRecipe.value = "";
+  quantity.value = null;
+};
+
+const onImportRecipes = (parsedRecipes: Recipe[]) => {
+  parsedRecipes.forEach((recipe) => {
+    addRecipe(recipe.name, recipe);
+  });
+};
+
+const onExportCsv = () => {
+  const csvData = exportRecipesToCSV(recipes);
+  const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", "recipes.csv");
+  link.style.visibility = "hidden";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  openExport.value = false;
 };
 </script>
 
@@ -88,7 +116,7 @@ const onFinish = () => {
     <nav-bar
       @click-history="openHistory = true"
       @click-import-csv="openImport = true"
-      @click-export-csv="openExport = true"
+      @click-export-csv="onExportCsv"
       @click-manage="openManage = true"
     ></nav-bar>
     <div class="max-w-4xl mx-auto">
@@ -101,10 +129,11 @@ const onFinish = () => {
           <span class="font-bold">Inserimento peso in Kg.</span>
         </p>
       </header>
-      <ModaHistory
+      <ModalHistory
         :active="openHistory"
+        :history="history"
         @close-modal="openHistory = false"
-      ></ModaHistory>
+      ></ModalHistory>
       <ModalClean
         :active="openClean"
         @close-modal="openClean = false"
@@ -113,11 +142,14 @@ const onFinish = () => {
       <ModalImport
         :active="openImport"
         @close-modal="openImport = false"
+        @import-recipes="onImportRecipes"
       ></ModalImport>
       <ModalManage
         :active="openManage"
         @close-modal="openManage = false"
         :recipes="recipes"
+        @save-recipe="addRecipe"
+        @delete-recipe="deleteRecipe"
       ></ModalManage>
       <ModalQuantity
         :active="openQuantity"
@@ -135,13 +167,13 @@ const onFinish = () => {
         @re-calc="reCalculate"
         @finish="onFinish"
       ></main-weight>
-      <recipe
+      <RecipeComponent
         :recipes="recipes"
         v-model="selectRecipe"
         :total="total"
         :taraWeight="preparation.tareWeight"
         @start="openQuantityModal"
-      ></recipe>
+      ></RecipeComponent>
       <table-recipe
         :preparation="preparation"
         :step="step"

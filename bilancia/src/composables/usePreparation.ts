@@ -79,6 +79,7 @@ export function usePreparation() {
       grams: +(ingredient.grams * scaleFactor).toFixed(2),
     }));
   };
+
   const reCalculate = () => {
     const percentage = getPercentage(preparation.ingredients[step.value]);
     if (percentage <= 0) {
@@ -101,6 +102,14 @@ export function usePreparation() {
     }
     return preparation.ingredients[step.value];
   });
+  
+  const reset = () => {
+    preparation.name = "";
+    preparation.ingredients = [];
+    preparation.tareWeight = 0;
+    step.value = -1;
+  };
+
   return {
     preparation,
     setStep,
@@ -113,5 +122,6 @@ export function usePreparation() {
     total,
     currentStep,
     step,
+    reset,
   };
 }
