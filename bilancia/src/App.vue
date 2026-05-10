@@ -1,5 +1,13 @@
 <script setup lang="ts">
+import { onMounted } from 'vue';
+import { initRecipes } from './composables/useRecipes';
+import { initHistory } from './composables/useHistory';
 import "./index.css";
+
+onMounted(() => {
+  initRecipes().catch(console.error);
+  initHistory().catch(console.error);
+});
 </script>
 
 <template>

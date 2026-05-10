@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import { Preparation } from "./usePreparation";
+import { HistoryRepository } from "../repositories/HistoryRepository";
 
 export type HistoryEntry = {
   timestamp: string;
@@ -8,13 +9,24 @@ export type HistoryEntry = {
 
 const history = reactive<HistoryEntry[]>([]);
 
-export function useHistory() {
+export async function initHistory() {
+  const loadedHistory = await HistoryRepository.getAllHistory();
 
-  const addHistory = (preparation: Preparation) => {
+  for (const h of loadedHistory) {
+    history.push(h);
+  }
+}
+
+export function useHistory() {
+  const addHistory = async (preparation: Preparation) => {
+    const timestamp = new Date().toISOString();
+
     history.push({
-      timestamp: new Date().toISOString(),
+      timestamp,
       preparation: JSON.parse(JSON.stringify(preparation)),
     });
+
+    await HistoryRepository.addHistory(timestamp, preparation);
   };
 
   return { history, addHistory };

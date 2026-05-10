@@ -1,24 +1,29 @@
 import { reactive } from "vue";
+import { RecipeRepository } from "../repositories/RecipeRepository";
 
 export type Ingredient = { name: string; grams: number; tolerance: number };
 export type Recipe = { name: string; ingredients: Ingredient[] };
 export type RecipeRegistry = Record<string, Recipe>;
-const recipes = reactive<RecipeRegistry>({
-  "1 BASE BIANCA 57900": {
-    name: "1 BASE BIANCA 57900",
-    ingredients: [
-      { name: "LATTE", grams: 400.0, tolerance: 0.0 },
-      { name: "ZUCCHERO", grams: 500.0, tolerance: 0.0 },
-    ],
-  },
-});
+
+const recipes = reactive<RecipeRegistry>({});
+
+export async function initRecipes() {
+  const loadedRecipes = await RecipeRepository.getAllRecipes();
+  for (const r of loadedRecipes) {
+    recipes[r.name] = r;
+  }
+}
+
 export function useRecipes() {
-  function addRecipe(name: string, recipe: Recipe) {
+  async function addRecipe(name: string, recipe: Recipe) {
     recipes[name] = recipe;
+    await RecipeRepository.addRecipe(name, recipe);
   }
-  function deleteRecipe(name: string) {
+
+  async function deleteRecipe(name: string) {
     delete recipes[name];
+    await RecipeRepository.deleteRecipe(name);
   }
-  // const listRecipes = computed(() => Object.keys(recipes));
+
   return { recipes, addRecipe, deleteRecipe };
 }
