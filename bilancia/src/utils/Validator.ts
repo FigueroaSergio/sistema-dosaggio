@@ -180,7 +180,7 @@ class StringValidator extends BaseValidator<string> {
   }
 
   min(length: number): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (value.length < length) {
         return `String must be at least ${length} characters`;
       }
@@ -190,7 +190,7 @@ class StringValidator extends BaseValidator<string> {
   }
 
   max(length: number): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (value.length > length) {
         return `String must be at most ${length} characters`;
       }
@@ -200,7 +200,7 @@ class StringValidator extends BaseValidator<string> {
   }
 
   email(): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(value)) {
         return "Invalid email format";
@@ -211,7 +211,7 @@ class StringValidator extends BaseValidator<string> {
   }
 
   pattern(regex: RegExp, message?: string): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (!regex.test(value)) {
         return message || `Value does not match pattern ${regex}`;
       }
@@ -221,7 +221,7 @@ class StringValidator extends BaseValidator<string> {
   }
 
   trim(): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (value.trim().length === 0) {
         return "String cannot be empty after trimming";
       }
@@ -231,7 +231,7 @@ class StringValidator extends BaseValidator<string> {
   }
 
   oneOf(values: string[]): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (!values.includes(value)) {
         return `Value must be one of: ${values.join(", ")}`;
       }
@@ -252,7 +252,7 @@ class NumberValidator extends BaseValidator<number> {
   }
 
   min(value: number): this {
-    this.rules.push((num, path) => {
+    this.rules.push((num) => {
       if (num < value) {
         return `Number must be at least ${value}`;
       }
@@ -262,7 +262,7 @@ class NumberValidator extends BaseValidator<number> {
   }
 
   max(value: number): this {
-    this.rules.push((num, path) => {
+    this.rules.push((num) => {
       if (num > value) {
         return `Number must be at most ${value}`;
       }
@@ -272,7 +272,7 @@ class NumberValidator extends BaseValidator<number> {
   }
 
   positive(): this {
-    this.rules.push((num, path) => {
+    this.rules.push((num) => {
       if (num <= 0) {
         return "Number must be positive";
       }
@@ -282,7 +282,7 @@ class NumberValidator extends BaseValidator<number> {
   }
 
   int(): this {
-    this.rules.push((num, path) => {
+    this.rules.push((num) => {
       if (!Number.isInteger(num)) {
         return "Number must be an integer";
       }
@@ -292,7 +292,7 @@ class NumberValidator extends BaseValidator<number> {
   }
 
   oneOf(values: number[]): this {
-    this.rules.push((num, path) => {
+    this.rules.push((num) => {
       if (!values.includes(num)) {
         return `Value must be one of: ${values.join(", ")}`;
       }
@@ -331,7 +331,7 @@ class ArrayValidator<T> extends BaseValidator<T[]> {
   }
 
   min(length: number): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (value.length < length) {
         return `Array must have at least ${length} items`;
       }
@@ -341,7 +341,7 @@ class ArrayValidator<T> extends BaseValidator<T[]> {
   }
 
   max(length: number): this {
-    this.rules.push((value, path) => {
+    this.rules.push((value) => {
       if (value.length > length) {
         return `Array must have at most ${length} items`;
       }

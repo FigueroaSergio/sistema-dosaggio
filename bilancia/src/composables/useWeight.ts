@@ -4,7 +4,7 @@ export function useWeight(active: Ref<Boolean>) {
   let weight = ref<number>(0);
   const SCALE_PATTERN = /^(\d*|0),\d+$/;
 
-  function update(event: Event) {
+  function update(event: KeyboardEvent) {
     if (!active.value) {
       return;
     }

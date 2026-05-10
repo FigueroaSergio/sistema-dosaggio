@@ -1,4 +1,4 @@
-import { computed, reactive } from "vue";
+import { reactive } from "vue";
 
 export type Ingredient = { name: string; grams: number; tolerance: number };
 export type Recipe = { name: string; ingredients: Ingredient[] };
@@ -19,6 +19,6 @@ export function useRecipes() {
   function deleteRecipe(name: string) {
     delete recipes[name];
   }
-  const listRecipes = computed(() => Object.keys(recipes));
+  // const listRecipes = computed(() => Object.keys(recipes));
   return { recipes, addRecipe, deleteRecipe };
 }

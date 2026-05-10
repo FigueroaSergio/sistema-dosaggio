@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { RecipeRegistry } from "../composables/useRecipes.ts";
-const { recipes, total, taraWeight } = defineProps<{
-  recipes: RecipeRegistry;
+// import { RecipeRegistry } from "../composables/useRecipes.ts";
+const { total, taraWeight } = defineProps<{
+  // recipes: RecipeRegistry;
   total: number;
   taraWeight: number;
 }>();

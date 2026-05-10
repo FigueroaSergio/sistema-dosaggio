@@ -4,7 +4,7 @@ import Modal from "./Modal.vue";
 import { RecipeRegistry } from "../composables/useRecipes";
 
 const props = defineProps<{ active: boolean; recipes: RecipeRegistry }>();
-const emit = defineEmits<{
+defineEmits<{
   (e: "close-modal"): void;
   (e: "select", name: string): void;
 }>();
