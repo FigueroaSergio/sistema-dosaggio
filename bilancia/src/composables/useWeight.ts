@@ -8,8 +8,6 @@ export function useWeight(active: Ref<Boolean>) {
     if (!active.value) {
       return;
     }
-    console.log(event);
-
     if (event.key !== "Enter") {
       if (
         event.key.length === 1 &&

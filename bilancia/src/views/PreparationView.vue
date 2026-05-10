@@ -12,6 +12,7 @@ import { useWeight } from "../composables/useWeight.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
 import { usePreparation } from "../composables/usePreparation.ts";
 import { useHistory } from "../composables/useHistory.ts";
+import NavBar from "../components/NavBar.vue";
 
 const router = useRouter();
 
@@ -135,12 +136,8 @@ const savePreparationAsRecipe = () => {
 
 <template>
   <div class="bg-gray-50 min-h-screen font-sans flex flex-col">
-    <!-- Top bar -->
-    <div
-      class="border-b bg-white p-4 flex flex-wrap justify-between items-center gap-4 shadow-sm"
-    >
-      <h1 class="text-2xl font-bold text-gray-800">Inizia Ricetta</h1>
-      <div class="flex gap-2 flex-wrap">
+    <NavBar title="Inizia Ricetta">
+      <template #actions>
         <button
           @click="openRecipeModal = true"
           class="px-4 py-2 border border-teal-600 text-teal-600 bg-white font-medium rounded-lg hover:bg-teal-50 transition shadow-sm"
@@ -149,12 +146,12 @@ const savePreparationAsRecipe = () => {
         </button>
         <button
           @click="router.push('/')"
-          class="px-4 py-2 border border-gray-300 bg-white font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
+          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
           Home
         </button>
-      </div>
-    </div>
+      </template>
+    </NavBar>
 
     <div class="flex-1 max-w-4xl mx-auto w-full p-4 md:p-8">
       <ModalClean

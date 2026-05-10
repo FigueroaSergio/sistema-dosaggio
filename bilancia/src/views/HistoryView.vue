@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useHistory, type HistoryEntry } from '../composables/useHistory.ts';
+import NavBar from "../components/NavBar.vue";
 
 const router = useRouter();
 const { history } = useHistory();
@@ -15,21 +16,21 @@ const selectEntry = (entry: HistoryEntry) => {
 
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col font-sans">
-    <!-- Top bar -->
-    <div class="border-b bg-white p-4 flex justify-between items-center shadow-sm">
-      <h1 class="text-2xl font-bold text-gray-800">Historico</h1>
-      <button 
-        @click="router.push('/')"
-        class="px-4 py-2 border border-gray-300 bg-white rounded-lg font-medium hover:bg-gray-100 transition"
-      >
-        Home
-      </button>
-    </div>
+    <NavBar title="Storico">
+      <template #actions>
+        <button 
+          @click="router.push('/')"
+          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition shadow-sm"
+        >
+          Home
+        </button>
+      </template>
+    </NavBar>
 
     <!-- Content -->
     <div class="flex-1 flex flex-col md:flex-row p-4 gap-6 max-w-7xl mx-auto w-full">
       <!-- Lista ricette -->
-      <div class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      <div class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden">
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">Lista ricette</div>
         <div class="flex-1 overflow-y-auto p-4">
           <div v-if="history.length === 0" class="text-gray-500 text-center py-8">
@@ -49,7 +50,7 @@ const selectEntry = (entry: HistoryEntry) => {
       </div>
 
       <!-- Dettaglio ricetta -->
-      <div class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] overflow-hidden">
+      <div class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden">
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">Dettaglio ricetta</div>
         <div class="flex-1 overflow-y-auto p-6">
           <div v-if="!selectedEntry" class="h-full flex items-center justify-center text-gray-400 text-lg">

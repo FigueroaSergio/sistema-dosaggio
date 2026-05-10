@@ -5,6 +5,7 @@ import { useRecipes, type Recipe } from "../composables/useRecipes.ts";
 import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
 import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
+import NavBar from "../components/NavBar.vue";
 
 const router = useRouter();
 const { recipes, addRecipe, deleteRecipe } = useRecipes();
@@ -127,12 +128,8 @@ const onExport = () => {
       @change="handleImport"
     />
 
-    <!-- Top bar -->
-    <div
-      class="border-b bg-white p-4 flex flex-wrap justify-between items-center gap-4 shadow-sm"
-    >
-      <h1 class="text-2xl font-bold text-gray-800">Gestione</h1>
-      <div class="flex gap-2 flex-wrap">
+    <NavBar title="Gestione">
+      <template #actions>
         <button
           @click="createNewRecipe"
           class="px-4 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm"
@@ -141,24 +138,24 @@ const onExport = () => {
         </button>
         <button
           @click="triggerImport"
-          class="px-4 py-2 border border-gray-300 bg-white font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
+          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
           Importa
         </button>
         <button
           @click="onExport"
-          class="px-4 py-2 border border-gray-300 bg-white font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
+          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
-          Exporta
+          Esporta
         </button>
         <button
           @click="router.push('/')"
-          class="px-4 py-2 border border-gray-300 bg-white font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
+          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
           Home
         </button>
-      </div>
-    </div>
+      </template>
+    </NavBar>
 
     <!-- Content -->
     <div
@@ -166,7 +163,7 @@ const onExport = () => {
     >
       <!-- Lista ricette -->
       <div
-        class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] overflow-hidden"
+        class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden"
       >
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
           Lista ricette
@@ -200,7 +197,18 @@ const onExport = () => {
               @click.stop="onDelete(recipe.name)"
               class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition"
             >
-              ✕
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-5 w-5"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                  clip-rule="evenodd"
+                />
+              </svg>
             </button>
           </div>
         </div>
@@ -208,7 +216,7 @@ const onExport = () => {
 
       <!-- Dettaglio ricetta form -->
       <div
-        class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] overflow-hidden"
+        class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden"
       >
         <div
           class="p-4 border-b bg-gray-50 font-semibold text-gray-700 flex justify-between items-center"
@@ -241,7 +249,7 @@ const onExport = () => {
               class="text-red-600 text-sm mt-1"
               v-if="errors && errors.first('root.name')"
             >
-              ⚠️ Nome ricetta obbligatorio
+              Nome ricetta obbligatorio
             </div>
           </div>
 
@@ -259,103 +267,98 @@ const onExport = () => {
               class="text-red-600 text-sm mb-3"
               v-if="errors && errors.first(`root.ingredients`)"
             >
-              ⚠️ Aggiungere almeno un ingrediente
+              Aggiungere almeno un ingrediente
             </div>
 
-            <div class="space-y-3">
+            <div class="space-y-4">
               <div
                 v-for="(ingredient, idx) in recipeData.ingredients"
                 :key="idx"
-                class="flex flex-wrap md:flex-nowrap gap-3 items-start bg-gray-50 p-3 rounded-lg border border-gray-100"
+                class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm relative group"
               >
-                <div class="flex-1 w-full md:w-auto">
-                  <label class="block text-xs text-gray-500 mb-1"
-                    >Ingrediente</label
-                  >
-                  <input
-                    type="text"
-                    placeholder="Nome"
-                    v-model="ingredient.name"
-                    class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                  />
-                  <div
-                    class="text-red-600 text-xs mt-1"
-                    v-if="
-                      errors && errors.first(`root.ingredients[${idx}].name`)
-                    "
-                  >
-                    ⚠️ Obbligatorio
-                  </div>
-                </div>
-                <div class="w-1/3 md:w-24">
-                  <label class="block text-xs text-gray-500 mb-1">Grammi</label>
-                  <input
-                    type="number"
-                    placeholder="q.tà"
-                    v-model.number="ingredient.grams"
-                    step="0.001"
-                    min="0"
-                    class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                  />
-                  <div
-                    class="text-red-600 text-xs mt-1"
-                    v-if="
-                      errors && errors.first(`root.ingredients[${idx}].grams`)
-                    "
-                  >
-                    ⚠️ Quantità
-                  </div>
-                </div>
-                <div class="w-1/3 md:w-24">
-                  <label class="block text-xs text-gray-500 mb-1"
-                    >Toll. (g)</label
-                  >
-                  <input
-                    type="number"
-                    placeholder="toll."
-                    v-model.number="ingredient.tolerance"
-                    step="0.001"
-                    min="0"
-                    class="w-full p-2 border border-gray-300 rounded focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm"
-                  />
-                </div>
-                <div
-                  class="w-full md:w-auto flex justify-end md:self-center mt-2 md:mt-5"
+                <!-- Remove button positioned at top right for easy access -->
+                <button
+                  @click="onRemoveIngredient(idx)"
+                  class="absolute top-2 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                  title="Rimuovi ingrediente"
                 >
-                  <button
-                    @click="onRemoveIngredient(idx)"
-                    class="p-2 text-red-500 hover:text-red-700 hover:bg-red-100 rounded transition"
-                    title="Rimuovi ingrediente"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="h-5 w-5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  </svg>
+                </button>
+
+                <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                  <!-- Name Input: Full width on mobile, 6 cols on desktop -->
+                  <div class="md:col-span-6">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
+                      >Ingrediente</label
                     >
-                      <path
-                        fill-rule="evenodd"
-                        d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                        clip-rule="evenodd"
-                      />
-                    </svg>
-                  </button>
+                    <input
+                      type="text"
+                      placeholder="Nome ingrediente"
+                      v-model="ingredient.name"
+                      class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm bg-white"
+                    />
+                    <div
+                      class="text-red-600 text-xs mt-1"
+                      v-if="errors && errors.first(`root.ingredients[${idx}].name`)"
+                    >
+                      Obbligatorio
+                    </div>
+                  </div>
+
+                  <!-- Grams Input: Full width on mobile, 3 cols on desktop -->
+                  <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Peso (g)</label>
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      v-model.number="ingredient.grams"
+                      step="0.001"
+                      min="0"
+                      class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm bg-white"
+                    />
+                    <div
+                      class="text-red-600 text-xs mt-1"
+                      v-if="errors && errors.first(`root.ingredients[${idx}].grams`)"
+                    >
+                      Quantità richiesta
+                    </div>
+                  </div>
+
+                  <!-- Tolerance Input: Full width on mobile, 3 cols on desktop -->
+                  <div class="md:col-span-3">
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
+                      >Toll. (g)</label
+                    >
+                    <input
+                      type="number"
+                      placeholder="0.00"
+                      v-model.number="ingredient.tolerance"
+                      step="0.001"
+                      min="0"
+                      class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm bg-white"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
             <div
               v-if="recipeData.ingredients.length === 0"
-              class="text-center py-6 text-gray-400 bg-gray-50 rounded-lg border border-dashed border-gray-300"
+              class="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
             >
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
               Nessun ingrediente inserito
             </div>
           </div>
         </div>
 
-        <div class="p-4 border-t bg-gray-50 flex justify-end mt-auto">
+        <div class="p-4 border-t bg-white flex justify-end mt-auto">
           <button
             @click="onSave"
-            class="px-8 py-3 bg-teal-600 text-white font-bold rounded-lg hover:bg-teal-700 transition shadow-md"
+            class="w-full md:w-auto px-8 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition shadow-lg active:scale-95"
           >
             Salva Ricetta
           </button>
