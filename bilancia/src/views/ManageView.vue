@@ -78,8 +78,41 @@ const onDelete = (name: string) => {
   }
 };
 
-const triggerImport = () => {
-  fileInput.value?.click();
+const processImportContent = (content: string) => {
+  try {
+    const parsedRecipes = parseCSVToRecipes(content);
+    parsedRecipes.forEach((r) => {
+      addRecipe(r.name, r);
+    });
+    alert(`Importate ${parsedRecipes.length} ricette con successo.`);
+    if (fileInput.value) fileInput.value.value = "";
+  } catch (err) {
+    alert("Errore durante l'analisi del file CSV.");
+  }
+};
+
+const triggerImport = async () => {
+  if ((window as any).__TAURI_INTERNALS__) {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const { readTextFile } = await import("@tauri-apps/plugin-fs");
+
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: "CSV", extensions: ["csv"] }],
+      });
+
+      if (selected && typeof selected === "string") {
+        const content = await readTextFile(selected);
+        processImportContent(content);
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Errore durante l'importazione con i plugin Tauri.");
+    }
+  } else {
+    fileInput.value?.click();
+  }
 };
 
 const handleImport = (event: Event) => {
@@ -89,32 +122,44 @@ const handleImport = (event: Event) => {
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    try {
-      const content = e.target?.result as string;
-      const parsedRecipes = parseCSVToRecipes(content);
-      parsedRecipes.forEach((r) => {
-        addRecipe(r.name, r);
-      });
-      alert(`Importate ${parsedRecipes.length} ricette con successo.`);
-      if (fileInput.value) fileInput.value.value = "";
-    } catch (err) {
-      alert("Errore durante l'analisi del file CSV.");
-    }
+    const content = e.target?.result as string;
+    processImportContent(content);
   };
   reader.readAsText(file);
 };
 
-const onExport = () => {
+const onExport = async () => {
   const csvData = exportRecipesToCSV(recipes);
-  const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.setAttribute("href", url);
-  link.setAttribute("download", "recipes.csv");
-  link.style.visibility = "hidden";
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+
+  if ((window as any).__TAURI_INTERNALS__) {
+    try {
+      const { save } = await import("@tauri-apps/plugin-dialog");
+      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+
+      const path = await save({
+        filters: [{ name: "CSV", extensions: ["csv"] }],
+        defaultPath: "recipes.csv",
+      });
+
+      if (path) {
+        await writeTextFile(path, csvData);
+        alert("Esportazione completata con successo.");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Errore durante l'esportazione.");
+    }
+  } else {
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "recipes.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 };
 </script>
 

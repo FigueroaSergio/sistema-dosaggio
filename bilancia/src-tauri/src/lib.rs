@@ -8,11 +8,10 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "create_initial_tables",
-            sql: "
+    let migrations = vec![Migration {
+        version: 1,
+        description: "create_initial_tables",
+        sql: "
                 CREATE TABLE recipes (
                     name TEXT PRIMARY KEY
                 );
@@ -43,15 +42,16 @@ pub fn run() {
                     FOREIGN KEY(history_id) REFERENCES history(id) ON DELETE CASCADE
                 );
             ",
-            kind: MigrationKind::Up,
-        }
-    ];
+        kind: MigrationKind::Up,
+    }];
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_fs::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(
             tauri_plugin_sql::Builder::new()
                 .add_migrations("sqlite:bilancia.db", migrations)
-                .build()
+                .build(),
         )
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])

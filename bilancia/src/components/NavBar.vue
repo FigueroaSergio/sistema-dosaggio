@@ -86,6 +86,7 @@ const toggleMenu = () => {
       <aside
         v-if="isMenuOpen"
         class="fixed top-0 right-0 h-full w-64 bg-white shadow-xl z-50 lg:hidden flex flex-col p-6"
+        style="padding-top: calc(1.5rem + env(safe-area-inset-top)); padding-right: calc(1.5rem + env(safe-area-inset-right)); padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));"
       >
         <div class="flex items-center justify-between mb-8">
           <span class="font-bold text-gray-800">Menu</span>
