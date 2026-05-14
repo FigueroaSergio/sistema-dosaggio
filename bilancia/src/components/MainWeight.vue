@@ -5,12 +5,23 @@ import {
   Preparation,
   getPercentage,
 } from "../composables/usePreparation";
-defineEmits<{
+const emit = defineEmits<{
   (e: "re-calc"): void;
   (e: "next"): void;
   (e: "finish"): void;
   (e: "save-recipe"): void;
+  (e: "azzera"): void;
 }>();
+
+const handleAction = (
+  e: Event,
+  action: "next" | "re-calc" | "finish" | "azzera",
+) => {
+  emit(action);
+  if (e.target instanceof HTMLElement) {
+    e.target.blur();
+  }
+};
 const props = defineProps<{
   ingredient: IngredientPreparation;
   preparation: Preparation;
@@ -44,9 +55,7 @@ const finish = computed(
         id="target-weight-display"
         class="text-center text-gray-700 font-semibold text-lg"
       >
-        <template v-if="step < 0">
-          Peso netto (Peso lordo - Tara precedente)
-        </template>
+        <template v-if="step < 0"> Peso del Contenitore </template>
         <template v-else>
           {{ preparation.ingredients[step].name }}:
           {{ preparation.ingredients[step].grams.toFixed(2) }} g
@@ -85,22 +94,33 @@ const finish = computed(
     </div>
 
     <!-- ACCIONES DE PREPARACIÓN -->
-    <div id="prep-actions" class="flex flex-wrap gap-4 mt-6 justify-center">
+    <div id="prep-actions" class="flex flex-wrap gap-2 mt-2 justify-center">
       <template v-if="preparation.name">
+        <button
+          v-if="step < 0"
+          id="azzera-btn"
+          class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          @click="handleAction($event, 'azzera')"
+          title="Azzera la tara"
+        >
+          Azzera
+        </button>
+
         <button
           id="recalc-btn"
           class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
           title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
-          @click="$emit('re-calc')"
+          @click="handleAction($event, 're-calc')"
         >
-          Ricalcola Quantità
+          Ricalcola
         </button>
         <button
           id="next-ingredient-btn"
           class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-          @click="$emit('next')"
+          @click="handleAction($event, 'next')"
+          title="Passa all'ingrediente successivo"
         >
-          Ingrediente Successivo
+          {{ step < 0 ? "Tara" : "Continua" }}
         </button>
 
         <button
@@ -108,9 +128,9 @@ const finish = computed(
           class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
           title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
           v-if="finish"
-          @click="$emit('finish')"
+          @click="handleAction($event, 'finish')"
         >
-          Completa Ricetta
+          Completa
         </button>
       </template>
     </div>

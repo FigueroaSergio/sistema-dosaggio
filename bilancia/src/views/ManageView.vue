@@ -204,16 +204,16 @@ const onExport = async () => {
 
     <!-- Content -->
     <div
-      class="flex-1 flex flex-col md:flex-row p-4 gap-6 max-w-7xl mx-auto w-full"
+      class="flex-1 flex flex-col md:flex-row p-2 gap-2 max-w-7xl mx-auto w-full"
     >
       <!-- Lista ricette -->
       <div
-        class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden"
+        class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-100px)] md:h-[calc(100vh-100px)] overflow-hidden"
       >
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
           Lista ricette
         </div>
-        <div class="flex-1 overflow-y-auto p-4">
+        <div class="flex-1 overflow-y-auto">
           <div
             v-if="Object.keys(recipes).length === 0"
             class="text-gray-500 text-center py-8"
@@ -224,11 +224,11 @@ const onExport = async () => {
             v-for="recipe in recipes"
             :key="recipe.name"
             @click="selectRecipeToEdit(recipe)"
-            class="p-4 mb-2 border rounded-lg cursor-pointer transition flex justify-between items-center"
+            class="p-2 border-b cursor-pointer transition flex justify-between items-center"
             :class="{
               'border-teal-500 bg-teal-50 ring-1 ring-teal-500':
                 selectedRecipeName === recipe.name,
-              'border-gray-200 hover:bg-gray-50':
+              'border-gray-200 hover:bg-gray-200':
                 selectedRecipeName !== recipe.name,
             }"
           >
@@ -261,7 +261,7 @@ const onExport = async () => {
 
       <!-- Dettaglio ricetta form -->
       <div
-        class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden"
+        class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-100px)] md:h-[calc(100vh-100px)] overflow-hidden"
       >
         <div
           class="p-4 border-b bg-gray-50 font-semibold text-gray-700 flex justify-between items-center"
@@ -279,7 +279,7 @@ const onExport = async () => {
           >
         </div>
 
-        <div class="flex-1 overflow-y-auto p-6">
+        <div class="flex-1 overflow-y-auto p-4">
           <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2"
               >Nome Ricetta</label
@@ -327,15 +327,25 @@ const onExport = async () => {
                   class="absolute top-2 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
                   title="Rimuovi ingrediente"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="h-5 w-5"
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path
+                      fill-rule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clip-rule="evenodd"
+                    />
                   </svg>
                 </button>
 
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                   <!-- Name Input: Full width on mobile, 6 cols on desktop -->
                   <div class="md:col-span-6">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
+                    <label
+                      class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
                       >Ingrediente</label
                     >
                     <input
@@ -346,7 +356,9 @@ const onExport = async () => {
                     />
                     <div
                       class="text-red-600 text-xs mt-1"
-                      v-if="errors && errors.first(`root.ingredients[${idx}].name`)"
+                      v-if="
+                        errors && errors.first(`root.ingredients[${idx}].name`)
+                      "
                     >
                       Obbligatorio
                     </div>
@@ -354,7 +366,10 @@ const onExport = async () => {
 
                   <!-- Grams Input: Full width on mobile, 3 cols on desktop -->
                   <div class="md:col-span-3">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Peso (g)</label>
+                    <label
+                      class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
+                      >Peso (g)</label
+                    >
                     <input
                       type="number"
                       placeholder="0.00"
@@ -365,7 +380,9 @@ const onExport = async () => {
                     />
                     <div
                       class="text-red-600 text-xs mt-1"
-                      v-if="errors && errors.first(`root.ingredients[${idx}].grams`)"
+                      v-if="
+                        errors && errors.first(`root.ingredients[${idx}].grams`)
+                      "
                     >
                       Quantità richiesta
                     </div>
@@ -373,7 +390,8 @@ const onExport = async () => {
 
                   <!-- Tolerance Input: Full width on mobile, 3 cols on desktop -->
                   <div class="md:col-span-3">
-                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
+                    <label
+                      class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
                       >Toll. (g)</label
                     >
                     <input
@@ -392,21 +410,32 @@ const onExport = async () => {
               v-if="recipeData.ingredients.length === 0"
               class="text-center py-10 text-gray-400 bg-gray-50 rounded-xl border-2 border-dashed border-gray-200"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 mx-auto mb-2 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-10 w-10 mx-auto mb-2 text-gray-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                />
               </svg>
               Nessun ingrediente inserito
             </div>
           </div>
-        </div>
 
-        <div class="p-4 border-t bg-white flex justify-end mt-auto">
-          <button
-            @click="onSave"
-            class="w-full md:w-auto px-8 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition shadow-lg active:scale-95"
-          >
-            Salva Ricetta
-          </button>
+          <div class="pt-2 bg-white flex justify-end">
+            <button
+              @click="onSave"
+              class="w-full md:w-auto px-8 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition shadow-lg active:scale-95"
+            >
+              Salva Ricetta
+            </button>
+          </div>
         </div>
       </div>
     </div>

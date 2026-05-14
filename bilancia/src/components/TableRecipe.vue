@@ -4,12 +4,15 @@ defineEmits<{ (e: "select", idx: number): void }>();
 defineProps<{ preparation: Preparation; step: number }>();
 </script>
 <template>
-  <div class="bg-white shadow-lg rounded-xl p-6">
-    <h2 id="prep-title" class="text-2xl font-bold text-gray-800 mb-4">
+  <div class="bg-white shadow-lg rounded-xl">
+    <h2
+      id="prep-title"
+      class="text-xl font-bold text-white bg-teal-600 p-2 rounded-t-xl"
+    >
       Dettaglio della Ricetta
     </h2>
 
-    <div class="overflow-x-auto">
+    <div class="overflow-x-auto rounded-b-xl">
       <table id="recipe-table" class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50">
           <tr>
@@ -21,25 +24,25 @@ defineProps<{ preparation: Preparation; step: number }>();
             </th>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
               Richiesto (g)
             </th>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
               Peso Aggiunto (g)
             </th>
-            <th
+            <!-- <th
               scope="col"
               class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
             >
               Progresso
-            </th>
+            </th> -->
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
               % Versato
             </th>
@@ -58,23 +61,25 @@ defineProps<{ preparation: Preparation; step: number }>();
             >
               {{ ingredient.name }}
             </td>
-            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-500">
+            <td
+              class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center"
+            >
               {{ ingredient.grams.toFixed(2) }} g
             </td>
             <td
-              class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-semibold"
+              class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-semibold text-center"
             >
               {{ ingredient.weight.toFixed(2) }} g
             </td>
-            <td class="px-4 py-3 whitespace-nowrap">
+            <!-- <td class="px-4 py-3 whitespace-nowrap">
               <progress
                 :value="getPercentage(ingredient)"
                 max="100"
                 class="w-full bar-color-black"
               ></progress>
-            </td>
+            </td> -->
             <td
-              class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 progress-color-black"
+              class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 progress-color-black text-center"
             >
               {{ getPercentage(ingredient).toFixed(0) }}%
             </td>

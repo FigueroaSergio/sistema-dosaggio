@@ -7,7 +7,7 @@ const { total, taraWeight } = defineProps<{
 }>();
 </script>
 <template>
-  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
     <div class="bg-gray-100 p-4 rounded-lg">
       <p class="text-sm font-medium text-gray-500">Peso Lordo (Kg)</p>
       <span id="raw-weight" class="text-4xl font-extrabold text-gray-800"

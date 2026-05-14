@@ -45,6 +45,7 @@ const {
   setStep,
   next,
   reCalculate,
+  azzera,
   reset,
 } = usePreparation();
 const { addHistory } = useHistory();
@@ -153,7 +154,7 @@ const savePreparationAsRecipe = () => {
       </template>
     </NavBar>
 
-    <div class="flex-1 max-w-4xl mx-auto w-full p-4 md:p-8">
+    <div class="flex-1 max-w-4xl md:max-w-7xl mx-auto w-full p-2 lg:p-8">
       <ModalClean
         :active="openClean"
         @close-modal="openClean = false"
@@ -178,27 +179,34 @@ const savePreparationAsRecipe = () => {
         @confirm="handleSaveConfirm"
       ></ModalConfirmSave>
 
-      <main-weight
-        :ingredient="currentStep"
-        :preparation="preparation"
-        :step="step"
-        @next="next"
-        @re-calc="reCalculate"
-        @finish="onFinish"
-        @save-recipe="savePreparationAsRecipe"
-      ></main-weight>
-      <RecipeComponent
-        :recipes="recipes"
-        v-model="selectRecipe"
-        :total="total"
-        :taraWeight="preparation.tareWeight"
-        @start="openQuantityModal"
-      ></RecipeComponent>
-      <table-recipe
-        :preparation="preparation"
-        :step="step"
-        @select="setStep"
-      ></table-recipe>
+      <div class="md:grid md:grid-cols-12 md:gap-2 items-start">
+        <div class="md:col-span-6">
+          <main-weight
+            :ingredient="currentStep"
+            :preparation="preparation"
+            :step="step"
+            @next="next"
+            @re-calc="reCalculate"
+            @finish="onFinish"
+            @save-recipe="savePreparationAsRecipe"
+            @azzera="azzera(weight)"
+          ></main-weight>
+        </div>
+        <div class="md:col-span-6 flex flex-col">
+          <RecipeComponent
+            :recipes="recipes"
+            v-model="selectRecipe"
+            :total="total"
+            :taraWeight="preparation.tareWeight"
+            @start="openQuantityModal"
+          ></RecipeComponent>
+          <table-recipe
+            :preparation="preparation"
+            :step="step"
+            @select="setStep"
+          ></table-recipe>
+        </div>
+      </div>
     </div>
   </div>
 </template>

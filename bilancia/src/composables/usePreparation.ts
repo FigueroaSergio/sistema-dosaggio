@@ -103,6 +103,10 @@ export function usePreparation() {
     return preparation.ingredients[step.value];
   });
   
+  const azzera = (newWeight: number) => {
+    preparation.tareWeight = newWeight;
+  };
+
   const reset = () => {
     preparation.name = "";
     preparation.ingredients = [];
@@ -118,6 +122,7 @@ export function usePreparation() {
     startRecipe,
     onUpdate,
     reCalculate,
+    azzera,
     totalNet,
     total,
     currentStep,
