@@ -6,17 +6,12 @@ import {
   getPercentage,
 } from "../composables/usePreparation";
 const emit = defineEmits<{
-  (e: "re-calc"): void;
-  (e: "next"): void;
-  (e: "finish"): void;
-  (e: "save-recipe"): void;
-  (e: "azzera"): void;
-  (e: "pause"): void;
+  (e: "re-calc" | "next" | "finish" | "save-recipe" | "azzera" | "pause"): void;
 }>();
 
 const handleAction = (
   e: Event,
-  action: "next" | "re-calc" | "finish" | "azzera" | "pause",
+  action: "next" | "re-calc" | "finish" | "azzera" | "pause" | "save-recipe",
 ) => {
   emit(action);
   if (e.target instanceof HTMLElement) {

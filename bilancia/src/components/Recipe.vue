@@ -80,7 +80,7 @@ const truncatedNote = computed(() => {
     >
       <div class="prose prose-sm max-w-none">
         <p class="whitespace-pre-wrap text-gray-700 leading-relaxed">
-          {{ recipe?.note }}
+          {{ preparation?.note }}
         </p>
       </div>
       <div class="mt-8 flex justify-end">

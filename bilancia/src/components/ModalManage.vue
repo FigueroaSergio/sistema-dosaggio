@@ -17,6 +17,7 @@ const validator = ref(RecipeValidator);
 const recipeData = reactive<Recipe>({
   name: "",
   ingredients: [],
+  note: "",
 });
 const errors = ref<ValidationError | null>(null);
 const onAddIngredient = () => {

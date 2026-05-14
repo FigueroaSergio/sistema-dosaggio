@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { usePausedPreparations, type PausedPreparation } from "../composables/usePausedPreparations";
+import { usePausedPreparations } from "../composables/usePausedPreparations";
 
 defineProps<{
   active: boolean;
@@ -54,7 +54,10 @@ const onRemove = (id: string) => {
       </div>
 
       <div class="flex-1 overflow-y-auto p-6">
-        <div v-if="pausedPreparations.length === 0" class="text-center py-10 text-gray-500">
+        <div
+          v-if="pausedPreparations.length === 0"
+          class="text-center py-10 text-gray-500"
+        >
           Nessuna preparazione in sospeso.
         </div>
         <div v-else class="space-y-4">
@@ -65,7 +68,9 @@ const onRemove = (id: string) => {
           >
             <div class="flex justify-between items-start mb-2">
               <div>
-                <h4 class="font-bold text-gray-800">{{ paused.preparation.name }}</h4>
+                <h4 class="font-bold text-gray-800">
+                  {{ paused.preparation.name }}
+                </h4>
                 <p class="text-xs text-gray-500">
                   {{ new Date(paused.timestamp).toLocaleString() }}
                 </p>
@@ -89,9 +94,14 @@ const onRemove = (id: string) => {
                 </svg>
               </button>
             </div>
-            
+
             <div class="text-sm text-gray-600 mb-4">
-              Passaggio attuale: {{ paused.step < 0 ? 'Tara' : paused.preparation.ingredients[paused.step]?.name }}
+              Passaggio attuale:
+              {{
+                paused.step < 0
+                  ? "Tara"
+                  : paused.preparation.ingredients[paused.step]?.name
+              }}
             </div>
 
             <button
@@ -103,7 +113,7 @@ const onRemove = (id: string) => {
           </div>
         </div>
       </div>
-      
+
       <div class="p-6 border-t bg-gray-50 flex justify-end">
         <button
           @click="emit('close-modal')"

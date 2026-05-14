@@ -28,6 +28,7 @@ export function parseCSVToRecipes(csvContent: string): Recipe[] {
       recipesMap[recipeName] = {
         name: recipeName,
         ingredients: [],
+        note: "",
       };
     }
 
@@ -47,7 +48,9 @@ export function exportRecipesToCSV(recipes: RecipeRegistry): string {
   Object.values(recipes).forEach((recipe) => {
     recipe.ingredients.forEach((ingredient, index) => {
       const quantity = ingredient.grams.toFixed(3).replace(".", ",");
-      const tolerance = (ingredient.tolerance || 0).toFixed(3).replace(".", ",");
+      const tolerance = (ingredient.tolerance || 0)
+        .toFixed(3)
+        .replace(".", ",");
       csvContent += `${recipe.name};${ingredient.name};${index + 1};${quantity};${tolerance}\n`;
     });
   });
