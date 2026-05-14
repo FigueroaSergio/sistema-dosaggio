@@ -5,6 +5,7 @@ export type Preparation = {
   name: string;
   ingredients: IngredientPreparation[];
   tareWeight: number;
+  note: string;
 };
 export const getProgress = (ingredient: IngredientPreparation) => {
   return Math.min(100, getPercentage(ingredient));
@@ -18,6 +19,7 @@ export function usePreparation() {
     name: "",
     ingredients: [],
     tareWeight: 0,
+    note: "",
   });
   const total = computed(() =>
     preparation.ingredients.reduce(
@@ -30,6 +32,7 @@ export function usePreparation() {
   );
   const startRecipe = (recipe: Recipe, quantity: number) => {
     preparation.name = recipe.name;
+    preparation.note = recipe.note;
     preparation.ingredients = recipe.ingredients.map((e) => ({
       ...e,
       weight: 0,
@@ -102,14 +105,21 @@ export function usePreparation() {
     }
     return preparation.ingredients[step.value];
   });
-  
+
   const azzera = (newWeight: number) => {
     preparation.tareWeight = newWeight;
   };
 
-  const loadPreparation = (savedPreparation: Preparation, savedStep: number) => {
+  const loadPreparation = (
+    savedPreparation: Preparation,
+    savedStep: number,
+  ) => {
     preparation.name = savedPreparation.name;
-    preparation.ingredients = JSON.parse(JSON.stringify(savedPreparation.ingredients));
+    preparation.ingredients = JSON.parse(
+      JSON.stringify(savedPreparation.ingredients),
+    );
+    preparation.note = savedPreparation.note;
+
     preparation.tareWeight = savedPreparation.tareWeight;
     step.value = savedStep;
   };

@@ -11,8 +11,9 @@ export const HistoryRepository = {
         timestamp: string;
         preparation_name: string;
         tare_weight: number;
+        note: string;
       }[]
-    >("SELECT id, timestamp, preparation_name, tare_weight FROM history");
+    >("SELECT id, timestamp, preparation_name, tare_weight, note FROM history");
 
     const result: HistoryEntry[] = [];
 
@@ -33,6 +34,7 @@ export const HistoryRepository = {
         timestamp: h.timestamp,
         preparation: {
           name: h.preparation_name,
+          note: h.note || "",
           tareWeight: h.tare_weight,
           ingredients: ingredients.map((i) => ({
             name: i.name,
@@ -50,8 +52,8 @@ export const HistoryRepository = {
   async addHistory(timestamp: string, preparation: Preparation): Promise<void> {
     const database = await getDb();
     const result = await database.execute(
-      "INSERT INTO history (timestamp, preparation_name, tare_weight) VALUES ($1, $2, $3)",
-      [timestamp, preparation.name, preparation.tareWeight],
+      "INSERT INTO history (timestamp, preparation_name, tare_weight, note) VALUES ($1, $2, $3, $4)",
+      [timestamp, preparation.name, preparation.tareWeight, preparation.note],
     );
 
     const historyId = result.lastInsertId;

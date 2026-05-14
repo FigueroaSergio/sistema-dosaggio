@@ -4,8 +4,8 @@ import { Recipe } from "../composables/useRecipes";
 export const RecipeRepository = {
   async getAllRecipes(): Promise<Recipe[]> {
     const database = await getDb();
-    const loadedRecipes = await database.select<{ name: string }[]>(
-      "SELECT name FROM recipes",
+    const loadedRecipes = await database.select<{ name: string; note: string }[]>(
+      "SELECT name, note FROM recipes",
     );
 
     const result: Recipe[] = [];
@@ -24,6 +24,7 @@ export const RecipeRepository = {
 
       result.push({
         name: r.name,
+        note: r.note,
         ingredients: ingredients.map((i) => ({
           name: i.name,
           grams: i.grams,
@@ -38,8 +39,8 @@ export const RecipeRepository = {
   async addRecipe(name: string, recipe: Recipe): Promise<void> {
     const database = await getDb();
     await database.execute(
-      "INSERT OR REPLACE INTO recipes (name) VALUES ($1)",
-      [name],
+      "INSERT OR REPLACE INTO recipes (name, note) VALUES ($1, $2)",
+      [name, recipe.note],
     );
     await database.execute(
       "DELETE FROM recipe_ingredients WHERE recipe_name = $1",

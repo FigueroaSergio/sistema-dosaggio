@@ -10,11 +10,12 @@ import ModalRecipeSelect from "../components/ModalRecipeSelect.vue";
 import ModalConfirmSave from "../components/ModalConfirmSave.vue";
 import { useWeight } from "../composables/useWeight.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
-import { usePreparation } from "../composables/usePreparation.ts";
+import { Preparation, usePreparation } from "../composables/usePreparation.ts";
 import { useHistory } from "../composables/useHistory.ts";
 import { usePausedPreparations } from "../composables/usePausedPreparations.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalPausedRecipes from "../components/ModalPausedRecipes.vue";
+import type { Recipe } from "../composables/useRecipes.ts";
 
 const router = useRouter();
 
@@ -25,15 +26,14 @@ const quantity = ref<number | null>(null);
 const openRecipeModal = ref(false);
 const openSaveConfirmModal = ref(false);
 const openPausedModal = ref(false);
+const isSingleMeasurement = ref(false);
+const singleMeasurementSource = ref<{
+  preparation: Preparation;
+  step: number;
+} | null>(null);
 
 const { recipes, addRecipe } = useRecipes();
-const recipe = computed(() => {
-  const recipe = recipes[selectRecipe.value];
-  if (!recipe) {
-    return;
-  }
-  return recipe;
-});
+const recipe = ref<Recipe | null>(null);
 
 const activeMain = computed(() => !(openClean.value || openQuantity.value));
 
@@ -69,6 +69,7 @@ onMounted(() => {
 const onRecipeSelected = (name: string) => {
   selectRecipe.value = name;
   openRecipeModal.value = false;
+  recipe.value = recipes[selectRecipe.value] || null;
   openQuantityModal();
 };
 
@@ -101,6 +102,15 @@ const onConfirmQuantity = () => {
 };
 
 const onFinish = () => {
+  if (isSingleMeasurement.value && singleMeasurementSource.value) {
+    const { preparation: sourcePreparation, step: sourceStep } =
+      singleMeasurementSource.value;
+
+    loadPreparation({ ...sourcePreparation }, sourceStep);
+    isSingleMeasurement.value = false;
+    singleMeasurementSource.value = null;
+    return;
+  }
   openSaveConfirmModal.value = true;
 };
 
@@ -138,6 +148,7 @@ const savePreparationAsRecipe = () => {
 
   addRecipe(newName, {
     name: newName,
+    note: preparation.note,
     ingredients: newIngredients,
   });
 
@@ -166,11 +177,40 @@ const onSelectPaused = (id: string) => {
 };
 
 const goHome = () => {
-  if (preparation.name) {
-    pausePreparation(preparation, step.value);
-    reset();
+  if (!preparation.name) {
+    router.push("/");
+    return;
   }
+  if (singleMeasurementSource.value) {
+    pausePreparation(
+      singleMeasurementSource.value?.preparation,
+      singleMeasurementSource.value?.step,
+    );
+  } else {
+    pausePreparation(preparation, step.value);
+  }
+  reset();
   router.push("/");
+};
+
+const handleMeasureAlone = (index: number) => {
+  const ingredient = preparation.ingredients[index];
+  isSingleMeasurement.value = true;
+  singleMeasurementSource.value = {
+    preparation: { ...preparation },
+    step: index,
+  };
+
+  const tempRecipe: Recipe = {
+    name: `Misura: ${ingredient.name}`,
+    note: "",
+    ingredients: [{ ...ingredient }],
+  };
+  selectRecipe.value = tempRecipe.name;
+  quantity.value = ingredient.grams;
+  recipe.value = tempRecipe;
+  startRecipe(tempRecipe, ingredient.grams);
+  openClean.value = true;
 };
 </script>
 
@@ -207,6 +247,7 @@ const goHome = () => {
         @confirm="startPreparation"
       ></ModalClean>
       <ModalQuantity
+        v-if="recipe"
         :active="openQuantity"
         :recipe="recipe"
         v-model="quantity"
@@ -247,16 +288,16 @@ const goHome = () => {
         </div>
         <div class="md:col-span-6 flex flex-col">
           <RecipeComponent
-            :recipes="recipes"
-            v-model="selectRecipe"
+            :preparation="preparation"
             :total="total"
-            :taraWeight="preparation.tareWeight"
             @start="openQuantityModal"
           ></RecipeComponent>
           <table-recipe
             :preparation="preparation"
             :step="step"
             @select="setStep"
+            @measure-alone="handleMeasureAlone"
+            :showActions="!isSingleMeasurement"
           ></table-recipe>
         </div>
       </div>

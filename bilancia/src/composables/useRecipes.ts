@@ -2,7 +2,7 @@ import { reactive } from "vue";
 import { RecipeRepository } from "../repositories/RecipeRepository";
 
 export type Ingredient = { name: string; grams: number; tolerance: number };
-export type Recipe = { name: string; ingredients: Ingredient[] };
+export type Recipe = { name: string; ingredients: Ingredient[]; note: string };
 export type RecipeRegistry = Record<string, Recipe>;
 
 const recipes = reactive<RecipeRegistry>({});

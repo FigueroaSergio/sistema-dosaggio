@@ -40,6 +40,7 @@ const confirmSave = async (newName: string) => {
 
   await addRecipe(newName, {
     name: newName,
+    note: prep.note || "",
     ingredients: newIngredients,
   });
 

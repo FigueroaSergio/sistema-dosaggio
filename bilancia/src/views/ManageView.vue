@@ -17,6 +17,7 @@ const validator = ref(RecipeValidator);
 const recipeData = reactive<Recipe>({
   name: "",
   ingredients: [],
+  note: "",
 });
 const errors = ref<ValidationError | null>(null);
 const isEditing = ref(false);
@@ -26,6 +27,7 @@ const selectRecipeToEdit = (recipe: Recipe) => {
   isEditing.value = true;
   recipeData.name = recipe.name;
   recipeData.ingredients = JSON.parse(JSON.stringify(recipe.ingredients));
+  recipeData.note = recipe.note || "";
   errors.value = null;
 };
 
@@ -34,6 +36,7 @@ const createNewRecipe = () => {
   isEditing.value = false;
   recipeData.name = "";
   recipeData.ingredients = [];
+  recipeData.note = "";
   errors.value = null;
 };
 
@@ -297,6 +300,18 @@ const onExport = async () => {
             >
               Nome ricetta obbligatorio
             </div>
+          </div>
+
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 mb-2"
+              >Note</label
+            >
+            <textarea
+              v-model="recipeData.note"
+              placeholder="Aggiungi note per questa ricetta..."
+              rows="3"
+              class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm"
+            ></textarea>
           </div>
 
           <div>

@@ -13,7 +13,8 @@ pub fn run() {
         description: "create_initial_tables",
         sql: "
                 CREATE TABLE recipes (
-                    name TEXT PRIMARY KEY
+                    name TEXT PRIMARY KEY,
+                    note TEXT
                 );
 
                 CREATE TABLE recipe_ingredients (

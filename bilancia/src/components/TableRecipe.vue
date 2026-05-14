@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { Preparation, getPercentage } from "../composables/usePreparation";
-defineEmits<{ (e: "select", idx: number): void }>();
-defineProps<{ preparation: Preparation; step: number }>();
+defineEmits<{
+  (e: "select", idx: number): void;
+  (e: "measure-alone", idx: number): void;
+}>();
+defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
 </script>
 <template>
   <div class="bg-white shadow-lg rounded-xl">
@@ -34,17 +37,18 @@ defineProps<{ preparation: Preparation; step: number }>();
             >
               Peso Aggiunto (g)
             </th>
-            <!-- <th
-              scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-1/4"
-            >
-              Progresso
-            </th> -->
             <th
               scope="col"
               class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
               % Versato
+            </th>
+            <th
+              scope="col"
+              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
+              v-if="showActions"
+            >
+              Azione
             </th>
           </tr>
         </thead>
@@ -55,6 +59,7 @@ defineProps<{ preparation: Preparation; step: number }>();
             :key="index"
             :class="index === step ? 'current-ingredient-row' : ''"
             @click="$emit('select', index)"
+            class="cursor-pointer"
           >
             <td
               class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900"
@@ -71,17 +76,21 @@ defineProps<{ preparation: Preparation; step: number }>();
             >
               {{ ingredient.weight.toFixed(2) }} g
             </td>
-            <!-- <td class="px-4 py-3 whitespace-nowrap">
-              <progress
-                :value="getPercentage(ingredient)"
-                max="100"
-                class="w-full bar-color-black"
-              ></progress>
-            </td> -->
             <td
               class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 progress-color-black text-center"
             >
               {{ getPercentage(ingredient).toFixed(0) }}%
+            </td>
+            <td
+              class="px-4 py-3 whitespace-nowrap text-center"
+              v-if="showActions"
+            >
+              <button
+                @click.stop="$emit('measure-alone', index)"
+                class="px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-lg hover:bg-teal-200 transition"
+              >
+                Misura
+              </button>
             </td>
           </tr>
         </tbody>
