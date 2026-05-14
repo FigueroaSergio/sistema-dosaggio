@@ -107,6 +107,13 @@ export function usePreparation() {
     preparation.tareWeight = newWeight;
   };
 
+  const loadPreparation = (savedPreparation: Preparation, savedStep: number) => {
+    preparation.name = savedPreparation.name;
+    preparation.ingredients = JSON.parse(JSON.stringify(savedPreparation.ingredients));
+    preparation.tareWeight = savedPreparation.tareWeight;
+    step.value = savedStep;
+  };
+
   const reset = () => {
     preparation.name = "";
     preparation.ingredients = [];
@@ -128,5 +135,6 @@ export function usePreparation() {
     currentStep,
     step,
     reset,
+    loadPreparation,
   };
 }

@@ -2,15 +2,49 @@
 import { ref } from "vue";
 import { useRouter } from "vue-router";
 import { useHistory, type HistoryEntry } from "../composables/useHistory.ts";
+import { useRecipes } from "../composables/useRecipes.ts";
 import NavBar from "../components/NavBar.vue";
+import ModalSaveRecipeName from "../components/ModalSaveRecipeName.vue";
 
 const router = useRouter();
 const { history } = useHistory();
+const { addRecipe } = useRecipes();
 
 const selectedEntry = ref<HistoryEntry | null>(null);
+const openSaveModal = ref(false);
+const defaultRecipeName = ref("");
 
 const selectEntry = (entry: HistoryEntry) => {
   selectedEntry.value = entry;
+};
+
+const saveAsRecipe = () => {
+  if (!selectedEntry.value) return;
+
+  const prep = selectedEntry.value.preparation;
+  const timestamp = new Date().toLocaleString();
+  defaultRecipeName.value = `${prep.name} (${timestamp})`;
+  openSaveModal.value = true;
+};
+
+const confirmSave = async (newName: string) => {
+  if (!selectedEntry.value) return;
+
+  const prep = selectedEntry.value.preparation;
+
+  const newIngredients = prep.ingredients.map((ing) => ({
+    name: ing.name,
+    grams: ing.grams,
+    tolerance: ing.tolerance || 0,
+  }));
+
+  await addRecipe(newName, {
+    name: newName,
+    ingredients: newIngredients,
+  });
+
+  alert(`Ricetta "${newName}" salvata con successo!`);
+  openSaveModal.value = false;
 };
 </script>
 
@@ -111,9 +145,21 @@ const selectEntry = (entry: HistoryEntry) => {
                 </span>
               </li>
             </ul>
+            <button
+              @click="saveAsRecipe"
+              class="mt-4 px-4 py-2 bg-teal-600 text-white text-bold rounded-lg hover:bg-teal-700 transition shadow-md text-sm"
+            >
+              Salva Ricetta
+            </button>
           </div>
         </div>
       </div>
     </div>
+    <ModalSaveRecipeName
+      :active="openSaveModal"
+      :default-name="defaultRecipeName"
+      @close-modal="openSaveModal = false"
+      @confirm="confirmSave"
+    ></ModalSaveRecipeName>
   </div>
 </template>

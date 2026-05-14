@@ -9,7 +9,7 @@ defineProps<{ preparation: Preparation; step: number }>();
       id="prep-title"
       class="text-xl font-bold text-white bg-teal-600 p-2 rounded-t-xl"
     >
-      Dettaglio della Ricetta
+      {{ preparation.name ? preparation.name : "Dettaglio della Ricetta" }}
     </h2>
 
     <div class="overflow-x-auto rounded-b-xl">

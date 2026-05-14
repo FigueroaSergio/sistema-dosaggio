@@ -63,6 +63,7 @@ const onSave = () => {
   }
 
   addRecipe(recipeData.name, JSON.parse(JSON.stringify(recipeData)));
+  alert(`Ricetta "${recipeData.name}" salvata con successo!`);
 
   selectedRecipeName.value = recipeData.name;
   isEditing.value = true;

@@ -12,7 +12,9 @@ import { useWeight } from "../composables/useWeight.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
 import { usePreparation } from "../composables/usePreparation.ts";
 import { useHistory } from "../composables/useHistory.ts";
+import { usePausedPreparations } from "../composables/usePausedPreparations.ts";
 import NavBar from "../components/NavBar.vue";
+import ModalPausedRecipes from "../components/ModalPausedRecipes.vue";
 
 const router = useRouter();
 
@@ -22,6 +24,7 @@ const selectRecipe = ref("");
 const quantity = ref<number | null>(null);
 const openRecipeModal = ref(false);
 const openSaveConfirmModal = ref(false);
+const openPausedModal = ref(false);
 
 const { recipes, addRecipe } = useRecipes();
 const recipe = computed(() => {
@@ -47,8 +50,15 @@ const {
   reCalculate,
   azzera,
   reset,
+  loadPreparation,
 } = usePreparation();
 const { addHistory } = useHistory();
+const {
+  pausedPreparations,
+  pausePreparation,
+  getPausedPreparation,
+  removePausedPreparation,
+} = usePausedPreparations();
 
 onMounted(() => {
   if (!preparation.name) {
@@ -133,6 +143,35 @@ const savePreparationAsRecipe = () => {
 
   alert(`Ricetta "${newName}" salvata con successo!`);
 };
+
+const onPause = () => {
+  if (!preparation.name) return;
+  pausePreparation(preparation, step.value);
+  reset();
+  selectRecipe.value = "";
+  quantity.value = null;
+  openRecipeModal.value = true;
+};
+
+const onSelectPaused = (id: string) => {
+  const paused = getPausedPreparation(id);
+  if (paused) {
+    if (preparation.name) {
+      pausePreparation(preparation, step.value);
+    }
+    loadPreparation(paused.preparation, paused.step);
+    removePausedPreparation(id);
+    openPausedModal.value = false;
+  }
+};
+
+const goHome = () => {
+  if (preparation.name) {
+    pausePreparation(preparation, step.value);
+    reset();
+  }
+  router.push("/");
+};
 </script>
 
 <template>
@@ -140,13 +179,20 @@ const savePreparationAsRecipe = () => {
     <NavBar title="Inizia Ricetta">
       <template #actions>
         <button
+          v-if="pausedPreparations.length > 0"
+          @click="openPausedModal = true"
+          class="px-4 py-2 border border-indigo-600 text-indigo-600 bg-white font-medium rounded-lg hover:bg-indigo-50 transition shadow-sm"
+        >
+          Riprendi ({{ pausedPreparations.length }})
+        </button>
+        <button
           @click="openRecipeModal = true"
           class="px-4 py-2 border border-teal-600 text-teal-600 bg-white font-medium rounded-lg hover:bg-teal-50 transition shadow-sm"
         >
-          🔍 Cerca Ricetta
+          Cerca Ricetta
         </button>
         <button
-          @click="router.push('/')"
+          @click="goHome"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
           Home
@@ -178,6 +224,12 @@ const savePreparationAsRecipe = () => {
         @close-modal="openSaveConfirmModal = false"
         @confirm="handleSaveConfirm"
       ></ModalConfirmSave>
+      <ModalPausedRecipes
+        :active="openPausedModal"
+        @close-modal="openPausedModal = false"
+        @select="onSelectPaused"
+        @remove="removePausedPreparation"
+      ></ModalPausedRecipes>
 
       <div class="md:grid md:grid-cols-12 md:gap-2 items-start">
         <div class="md:col-span-6">
@@ -190,6 +242,7 @@ const savePreparationAsRecipe = () => {
             @finish="onFinish"
             @save-recipe="savePreparationAsRecipe"
             @azzera="azzera(weight)"
+            @pause="onPause"
           ></main-weight>
         </div>
         <div class="md:col-span-6 flex flex-col">

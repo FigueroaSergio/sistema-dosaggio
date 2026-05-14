@@ -11,11 +11,12 @@ const emit = defineEmits<{
   (e: "finish"): void;
   (e: "save-recipe"): void;
   (e: "azzera"): void;
+  (e: "pause"): void;
 }>();
 
 const handleAction = (
   e: Event,
-  action: "next" | "re-calc" | "finish" | "azzera",
+  action: "next" | "re-calc" | "finish" | "azzera" | "pause",
 ) => {
   emit(action);
   if (e.target instanceof HTMLElement) {
@@ -113,6 +114,14 @@ const finish = computed(
           @click="handleAction($event, 're-calc')"
         >
           Ricalcola
+        </button>
+        <button
+          id="pause-btn"
+          class="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg shadow-md hover:bg-indigo-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          title="Sospendi la preparazione attuale per riprenderla più tardi"
+          @click="handleAction($event, 'pause')"
+        >
+          Sospendi
         </button>
         <button
           id="next-ingredient-btn"
