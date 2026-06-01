@@ -2,9 +2,11 @@ import { ref, onMounted, Ref } from "vue";
 export function useWeight(active: Ref<Boolean>) {
   let buffer = ref<string>("");
   let weight = ref<number>(0);
-  const SCALE_PATTERN = /^(\d*|0),\d+$/;
+  const SCALE_PATTERN = /^(\d*|0)\d+$/;
 
   function update(event: KeyboardEvent) {
+    console.log(event);
+
     if (!active.value) {
       return;
     }
@@ -22,6 +24,7 @@ export function useWeight(active: Ref<Boolean>) {
 
     const finalReading = buffer.value.trim();
     buffer.value = "";
+    console.log(finalReading);
 
     if (finalReading && SCALE_PATTERN.test(finalReading)) {
       let newWeightKgString = finalReading;
@@ -29,7 +32,7 @@ export function useWeight(active: Ref<Boolean>) {
 
       if (!isNaN(numericWeightKg)) {
         // Convertir Kg a Gramos para la lógica interna
-        const newWeightGrams = numericWeightKg * 1000;
+        const newWeightGrams = numericWeightKg * 1;
 
         weight.value = newWeightGrams;
       }

@@ -41,7 +41,7 @@ const finish = computed(
         <span
           id="added-weight-display"
           class="font-semibold text-gray-800 transition-colors duration-300 text-7xl"
-          >{{ ingredient.weight }}
+          >{{ ingredient.weight.toFixed(0) }}
         </span>
         <span class="text-3xl text-gray-500 ml-2 mb-2">g</span>
       </div>

@@ -8,10 +8,11 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![Migration {
-        version: 1,
-        description: "create_initial_tables",
-        sql: "
+    let migrations = vec![
+        Migration {
+            version: 1,
+            description: "create_initial_tables",
+            sql: "
                 CREATE TABLE recipes (
                     name TEXT PRIMARY KEY,
                     note TEXT
@@ -30,7 +31,8 @@ pub fn run() {
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     timestamp TEXT,
                     preparation_name TEXT,
-                    tare_weight REAL
+                    tare_weight REAL,
+                    note TEXT
                 );
 
                 CREATE TABLE history_ingredients (
@@ -43,8 +45,34 @@ pub fn run() {
                     FOREIGN KEY(history_id) REFERENCES history(id) ON DELETE CASCADE
                 );
             ",
-        kind: MigrationKind::Up,
-    }];
+            kind: MigrationKind::Up,
+        },
+        Migration {
+            version: 2,
+            description: "create_paused_preparations_tables",
+            sql: "
+                CREATE TABLE paused_preparations (
+                    id TEXT PRIMARY KEY,
+                    timestamp TEXT,
+                    preparation_name TEXT,
+                    tare_weight REAL,
+                    note TEXT,
+                    step INTEGER
+                );
+
+                CREATE TABLE paused_preparation_ingredients (
+                    id INTEGER PRIMARY KEY AUTOINCREMENT,
+                    paused_preparation_id TEXT,
+                    name TEXT,
+                    grams REAL,
+                    tolerance REAL,
+                    weight REAL,
+                    FOREIGN KEY(paused_preparation_id) REFERENCES paused_preparations(id) ON DELETE CASCADE
+                );
+            ",
+            kind: MigrationKind::Up,
+        },
+    ];
 
     tauri::Builder::default()
         .plugin(tauri_plugin_fs::init())

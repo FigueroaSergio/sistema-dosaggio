@@ -26,7 +26,7 @@ const truncatedNote = computed(() => {
           Peso Lordo
         </p>
         <span id="raw-weight" class="text-4xl font-extrabold text-gray-800"
-          >{{ total.toFixed(2) }} g</span
+          >{{ total.toFixed(0) }} g</span
         >
       </div>
 

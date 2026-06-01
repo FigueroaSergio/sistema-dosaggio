@@ -42,7 +42,7 @@ const {
   preparation,
   currentStep,
   step,
-  total,
+  totalNet,
   startRecipe,
   onUpdate,
   setStep,
@@ -289,7 +289,7 @@ const handleMeasureAlone = (index: number) => {
         <div class="md:col-span-6 flex flex-col">
           <RecipeComponent
             :preparation="preparation"
-            :total="total"
+            :total="totalNet"
             @start="openQuantityModal"
           ></RecipeComponent>
           <table-recipe
