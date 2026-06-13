@@ -1,10 +1,23 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useHistory, type HistoryEntry } from "../composables/useHistory.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalSaveRecipeName from "../components/ModalSaveRecipeName.vue";
+
+const dateFrom = ref("");
+const dateTo = ref("");
+
+const filteredHistory = computed(() => {
+  return history.filter((entry) => {
+    const d = new Date(entry.timestamp);
+    const dateStr = d.toISOString().slice(0, 10);
+    if (dateFrom.value && dateStr < dateFrom.value) return false;
+    if (dateTo.value && dateStr > dateTo.value) return false;
+    return true;
+  });
+});
 
 const router = useRouter();
 const { history } = useHistory();
@@ -73,15 +86,29 @@ const confirmSave = async (newName: string) => {
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
           Lista ricette
         </div>
+        <div class="p-3 border-b flex items-center gap-2">
+          <label class="text-xs font-semibold text-gray-600 whitespace-nowrap">Da</label>
+          <input
+            type="date"
+            v-model="dateFrom"
+            class="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          />
+          <label class="text-xs font-semibold text-gray-600 whitespace-nowrap">A</label>
+          <input
+            type="date"
+            v-model="dateTo"
+            class="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          />
+        </div>
         <div class="flex-1 overflow-y-auto">
           <div
-            v-if="history.length === 0"
+            v-if="filteredHistory.length === 0"
             class="text-gray-500 text-center py-8"
           >
             Nessuna preparazione in storico.
           </div>
           <div
-            v-for="entry in history"
+            v-for="entry in filteredHistory"
             :key="entry.timestamp"
             @click="selectEntry(entry)"
             class="p-4 border-b ring-1 ring-gray-200 cursor-pointer transition"

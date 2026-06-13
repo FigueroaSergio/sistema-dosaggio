@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, reactive } from "vue";
+import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useRecipes, type Recipe } from "../composables/useRecipes.ts";
 import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
@@ -7,9 +7,16 @@ import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
 import NavBar from "../components/NavBar.vue";
 
+const nameFilter = ref("");
+
 const router = useRouter();
 const { recipes, addRecipe, deleteRecipe } = useRecipes();
-
+const filteredRecipes = computed(() => {
+  if (!nameFilter.value) return recipes;
+  return Object.values(recipes).filter((r) =>
+    r.name.toLowerCase().includes(nameFilter.value.toLowerCase()),
+  );
+});
 const selectedRecipeName = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 
@@ -217,15 +224,23 @@ const onExport = async () => {
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
           Lista ricette
         </div>
+        <div class="p-3 border-b">
+          <input
+            type="text"
+            v-model="nameFilter"
+            placeholder="Cerca per nome..."
+            class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
+          />
+        </div>
         <div class="flex-1 overflow-y-auto">
           <div
-            v-if="Object.keys(recipes).length === 0"
+            v-if="Object.keys(filteredRecipes).length === 0"
             class="text-gray-500 text-center py-8"
           >
             Nessuna ricetta presente.
           </div>
           <div
-            v-for="recipe in recipes"
+            v-for="recipe in filteredRecipes"
             :key="recipe.name"
             @click="selectRecipeToEdit(recipe)"
             class="p-2 border-b cursor-pointer transition flex justify-between items-center"

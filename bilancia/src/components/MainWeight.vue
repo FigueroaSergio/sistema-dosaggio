@@ -28,6 +28,12 @@ const finish = computed(
     props.preparation.ingredients.length - 1 === props.step ||
     props.preparation.ingredients.every((ing) => ing.weight !== 0),
 );
+const totalWeightSoFar = computed(
+  () =>
+    props.preparation.ingredients.reduce((sum, ing) => sum + ing.weight, 0) +
+    props.ingredient.grams -
+    props.ingredient.weight,
+);
 </script>
 <template>
   <div
@@ -35,48 +41,79 @@ const finish = computed(
     class="bg-white shadow-xl rounded-xl p-6 mb-8 border border-teal-200"
   >
     <!-- DISPLAY PRINCIPAL -->
-    <div class="flex flex-col items-center justify-center py-4">
+    <div class="flex flex-col items-center justify-center py-4 relative">
       <!-- Main Weight Display -->
-      <div class="flex items-end">
+      <div
+        class="flex items-end justify-center relative w-full"
+        v-if="step >= 0"
+      >
+        <div
+          id="main-progress-bar-container"
+          class="absolute inset-0 flex items-center overflow-hidden rounded"
+        >
+          <progress
+            id="main-progress-bar"
+            :value="getPercentage(ingredient)"
+            max="100"
+            class="w-full bar-color-black"
+            style="height: 100%"
+          ></progress>
+        </div>
         <span
           id="added-weight-display"
-          class="font-semibold text-gray-800 transition-colors duration-300 text-7xl"
+          class="font-semibold transition-colors duration-300 text-7xl relative z-10 py-2"
+          style="
+            color: rgb(31, 41, 55);
+            text-shadow:
+              0 0 4px #fff,
+              0 0 8px #fff,
+              0 0 16px rgba(255, 255, 255, 0.9),
+              0 0 24px rgba(255, 255, 255, 0.6);
+          "
           >{{ ingredient.weight.toFixed(0) }}
         </span>
-        <span class="text-3xl text-gray-500 ml-2 mb-2">g</span>
+        <span
+          class="text-3xl ml-2 mb-2 relative z-10"
+          style="
+            color: rgb(31, 41, 55);
+            text-shadow:
+              0 0 4px #fff,
+              0 0 8px #fff,
+              0 0 16px rgba(255, 255, 255, 0.9),
+              0 0 24px rgba(255, 255, 255, 0.6);
+          "
+          >g</span
+        >
       </div>
 
       <!-- Small Instruction/Target Text -->
       <p
         id="target-weight-display"
-        class="text-center text-gray-700 font-semibold text-lg"
+        class="text-center text-gray-700 font-semibold text-lg relative z-10"
       >
         <template v-if="step < 0"> Peso del Contenitore </template>
         <template v-else>
           {{ preparation.ingredients[step].name }}:
-          {{ preparation.ingredients[step].grams.toFixed(2) }} g
+          {{ preparation.ingredients[step].grams.toFixed(0) }} g
         </template>
       </p>
 
-      <!-- Current Ingredient Progress Bar -->
-      <div
-        id="main-progress-bar-container"
-        class="w-full mt-4"
+      <p
+        v-if="step >= 0"
+        class="text-center text-gray-700 font-semibold text-md mt-2 relative z-10"
+      >
+        Peso Lordo da aggiungere:<br />
+        {{ totalWeightSoFar.toFixed(0) }} g
+      </p>
+
+      <!-- Percentage text below -->
+      <p
+        id="main-progress-percent"
+        class="text-sm font-medium text-gray-500 text-center mt-1 progress-color-black relative z-10"
         v-if="step >= 0"
       >
-        <progress
-          id="main-progress-bar"
-          :value="getPercentage(ingredient)"
-          max="100"
-          class="w-full bar-color-black"
-        ></progress>
-        <p
-          id="main-progress-percent"
-          class="text-sm font-medium text-gray-500 text-center mt-1 progress-color-black"
-        >
-          {{ getPercentage(ingredient).toFixed(0) }}% Versato
-        </p>
-      </div>
+        {{ getPercentage(ingredient).toFixed(0) }}% Versato
+      </p>
     </div>
 
     <!-- INSTRUCCIÓN ACTUAL -->

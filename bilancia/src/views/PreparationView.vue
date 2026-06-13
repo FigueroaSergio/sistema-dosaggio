@@ -34,6 +34,11 @@ const singleMeasurementSource = ref<{
 
 const { recipes, addRecipe } = useRecipes();
 const recipe = ref<Recipe | null>(null);
+const recipeTotal = computed(() =>
+  recipe.value
+    ? recipe.value.ingredients.reduce((sum, ing) => sum + ing.grams, 0)
+    : 0,
+);
 
 const activeMain = computed(() => !(openClean.value || openQuantity.value));
 
@@ -81,6 +86,7 @@ const openQuantityModal = () => {
   if (!recipe.value) {
     return;
   }
+  quantity.value = recipeTotal.value;
   openQuantity.value = true;
 };
 
@@ -285,13 +291,13 @@ const handleMeasureAlone = (index: number) => {
             @azzera="azzera(weight)"
             @pause="onPause"
           ></main-weight>
-        </div>
-        <div class="md:col-span-6 flex flex-col">
           <RecipeComponent
             :preparation="preparation"
             :total="totalNet"
             @start="openQuantityModal"
           ></RecipeComponent>
+        </div>
+        <div class="md:col-span-6 flex flex-col">
           <table-recipe
             :preparation="preparation"
             :step="step"
