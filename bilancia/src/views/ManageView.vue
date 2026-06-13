@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
-import { useRecipes, type Recipe } from "../composables/useRecipes.ts";
+import {
+  RecipeRegistry,
+  useRecipes,
+  type Recipe,
+} from "../composables/useRecipes.ts";
 import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
 import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
@@ -13,9 +17,14 @@ const router = useRouter();
 const { recipes, addRecipe, deleteRecipe } = useRecipes();
 const filteredRecipes = computed(() => {
   if (!nameFilter.value) return recipes;
-  return Object.values(recipes).filter((r) =>
-    r.name.toLowerCase().includes(nameFilter.value.toLowerCase()),
-  );
+  const recipeFiltered: RecipeRegistry = {};
+  Object.entries(recipes).forEach(([name, recipe]) => {
+    if (name.toLowerCase().includes(nameFilter.value.toLowerCase())) {
+      recipeFiltered[name] = recipe;
+    }
+  });
+
+  return recipeFiltered;
 });
 const selectedRecipeName = ref<string | null>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
