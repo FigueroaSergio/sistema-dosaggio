@@ -5,8 +5,6 @@ export function useWeight(active: Ref<Boolean>) {
   const SCALE_PATTERN = /^(\d*|0)\d+$/;
 
   function update(event: KeyboardEvent) {
-    console.log(event);
-
     if (!active.value) {
       return;
     }
@@ -24,7 +22,6 @@ export function useWeight(active: Ref<Boolean>) {
 
     const finalReading = buffer.value.trim();
     buffer.value = "";
-    console.log(finalReading);
 
     if (finalReading && SCALE_PATTERN.test(finalReading)) {
       let newWeightKgString = finalReading;

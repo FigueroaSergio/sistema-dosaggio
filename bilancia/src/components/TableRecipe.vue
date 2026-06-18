@@ -8,44 +8,37 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
 </script>
 <template>
   <div class="bg-white shadow-lg rounded-xl">
-    <h2
-      id="prep-title"
-      class="text-xl font-bold text-white bg-teal-600 p-2 rounded-t-xl"
-    >
-      {{ preparation.name ? preparation.name : "Dettaglio della Ricetta" }}
-    </h2>
-
-    <div class="overflow-x-auto rounded-b-xl">
+    <div class="overflow-x-auto rounded-b-xl max-h-[calc(100vh-20rem)] overflow-y-auto">
       <table id="recipe-table" class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+        <thead class="bg-gray-50 sticky top-0 z-10">
           <tr>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+              class="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
               Ingrediente
             </th>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
+              class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              Richiesto (g)
+              Richiesto
             </th>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
+              class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              Peso Aggiunto (g)
+              Aggiunto
             </th>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
+              class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              % Versato
+              Versato
             </th>
             <th
               scope="col"
-              class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
+              class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
               v-if="showActions"
             >
               Azione
@@ -61,33 +54,24 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
             @click="$emit('select', index)"
             class="cursor-pointer"
           >
-            <td
-              class="px-4 py-3 whitespace-nowrap text-sm font-medium text-gray-900"
-            >
+            <td class="px-2 py-0 text-sm font-medium text-gray-900">
               {{ ingredient.name }}
             </td>
-            <td
-              class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 text-center"
-            >
+            <td class="px-2 py-0 text-sm text-center">
               {{ ingredient.grams.toFixed(2) }} g
             </td>
             <td
-              class="px-4 py-3 whitespace-nowrap text-sm text-gray-700 font-semibold text-center"
+              class="px-2 py-0 text-sm text-gray-700 font-semibold text-center"
             >
               {{ ingredient.weight.toFixed(2) }} g
             </td>
-            <td
-              class="px-4 py-3 whitespace-nowrap text-sm text-gray-500 progress-color-black text-center"
-            >
+            <td class="px-2 py-0 text-sm progress-color-black text-center">
               {{ getPercentage(ingredient).toFixed(0) }}%
             </td>
-            <td
-              class="px-4 py-3 whitespace-nowrap text-center"
-              v-if="showActions"
-            >
+            <td class="px-2 py-1 text-center" v-if="showActions">
               <button
                 @click.stop="$emit('measure-alone', index)"
-                class="px-3 py-1 bg-teal-100 text-teal-700 text-xs font-bold rounded-lg hover:bg-teal-200 transition"
+                class="px-2 py-2 bg-teal-100 text-teal-700 text-xs font-bold rounded-lg hover:bg-teal-200 transition"
               >
                 Misura
               </button>

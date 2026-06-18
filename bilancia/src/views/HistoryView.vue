@@ -27,6 +27,15 @@ const selectedEntry = ref<HistoryEntry | null>(null);
 const openSaveModal = ref(false);
 const defaultRecipeName = ref("");
 
+const selectedTotal = computed(() => {
+  if (!selectedEntry.value) return { grams: 0, weight: 0 };
+  const prep = selectedEntry.value.preparation;
+  return {
+    grams: prep.ingredients.reduce((sum, ing) => sum + ing.grams, 0),
+    weight: prep.ingredients.reduce((sum, ing) => sum + ing.weight, 0),
+  };
+});
+
 const selectEntry = (entry: HistoryEntry) => {
   selectedEntry.value = entry;
 };
@@ -173,6 +182,14 @@ const confirmSave = async (newName: string) => {
                 </span>
               </li>
             </ul>
+            <div
+              class="flex justify-between items-center mt-4 pt-3 border-t border-gray-300 font-semibold text-gray-800"
+            >
+              <span>Totale</span>
+              <span class="font-mono text-sm">
+                {{ selectedTotal.weight.toFixed(2) }}g / {{ selectedTotal.grams.toFixed(2) }}g
+              </span>
+            </div>
             <button
               @click="saveAsRecipe"
               class="mt-4 px-4 py-2 bg-teal-600 text-white text-bold rounded-lg hover:bg-teal-700 transition shadow-md text-sm"

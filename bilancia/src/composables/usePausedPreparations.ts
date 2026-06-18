@@ -10,9 +10,20 @@ export type PausedPreparation = {
 
 const pausedPreparations = reactive<PausedPreparation[]>([]);
 
+function uuidv4(): string {
+  if (typeof crypto !== "undefined" && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export function usePausedPreparations() {
   const pausePreparation = (preparation: Preparation, step: number) => {
-    const id = crypto.randomUUID();
+    const id = uuidv4();
     const timestamp = new Date().toISOString();
     pausedPreparations.push({
       id,
@@ -31,5 +42,10 @@ export function usePausedPreparations() {
     if (index !== -1) pausedPreparations.splice(index, 1);
   };
 
-  return { pausedPreparations, pausePreparation, getPausedPreparation, removePausedPreparation };
+  return {
+    pausedPreparations,
+    pausePreparation,
+    getPausedPreparation,
+    removePausedPreparation,
+  };
 }

@@ -23,6 +23,7 @@ const filteredRecipes = computed(() => {
   <Modal
     :active="active"
     title="🔍 Seleziona Ricetta"
+    fullscreen
     @close-modal="$emit('close-modal')"
   >
     <div class="mb-4">
@@ -34,7 +35,7 @@ const filteredRecipes = computed(() => {
         autofocus
       />
     </div>
-    <div class="max-h-64 overflow-y-auto">
+    <div class="flex-1 overflow-y-auto">
       <div
         v-if="filteredRecipes.length === 0"
         class="text-center text-gray-500 py-4"

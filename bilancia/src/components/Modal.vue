@@ -1,9 +1,14 @@
 <script setup>
 import { reactive, computed } from "vue";
 defineEmits(["close-modal"]);
-const { active = false, title = "Modal" } = defineProps({
+const {
+  active = false,
+  title = "Modal",
+  fullscreen = false,
+} = defineProps({
   active: Boolean,
   title: String,
+  fullscreen: Boolean,
 });
 const style = computed(() => ({ display: active ? "flex" : "none" }));
 </script>
@@ -14,10 +19,14 @@ const style = computed(() => ({ display: active ? "flex" : "none" }));
       :style="style"
     >
       <div
-        class="bg-white rounded-xl shadow-2xl p-8 max-w-2xl w-full mx-4 my-8"
+        :class="
+          fullscreen
+            ? 'bg-white rounded-xl shadow-2xl p-4 w-full h-full max-w-none mx-0 my-0 min-h-0 flex flex-col'
+            : 'bg-white rounded-xl shadow-2xl p-4 max-w-2xl w-full mx-4 my-8'
+        "
       >
         <div class="flex justify-between items-center mb-6">
-          <h2 class="text-2xl font-bold text-gray-800">
+          <h2 class="text-xl font-bold text-gray-800">
             {{ title }}
           </h2>
           <button

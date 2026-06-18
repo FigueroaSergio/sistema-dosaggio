@@ -20,13 +20,14 @@ export async function initHistory() {
 export function useHistory() {
   const addHistory = async (preparation: Preparation) => {
     const timestamp = new Date().toISOString();
+    const snapshot = JSON.parse(JSON.stringify(preparation));
 
     history.push({
       timestamp,
-      preparation: JSON.parse(JSON.stringify(preparation)),
+      preparation: snapshot,
     });
 
-    await HistoryRepository.addHistory(timestamp, preparation);
+    await HistoryRepository.addHistory(timestamp, snapshot);
   };
 
   return { history, addHistory };

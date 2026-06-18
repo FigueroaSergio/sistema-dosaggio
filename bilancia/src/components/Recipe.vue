@@ -19,7 +19,10 @@ const truncatedNote = computed(() => {
 });
 </script>
 <template>
-  <div class="space-y-4 mb-4">
+  <div class="space-y-4">
+    <h2 id="prep-title" class="text-2xl font-bold">
+      {{ preparation.name ? preparation.name : "Dettaglio della Ricetta" }}
+    </h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200">
         <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">

@@ -120,18 +120,21 @@ const onFinish = () => {
   openSaveConfirmModal.value = true;
 };
 
-const handleSaveConfirm = (saveRecipe: boolean) => {
-  addHistory(preparation);
+const handleSaveConfirm = async (saveRecipe: boolean) => {
+  try {
+    await addHistory(preparation);
 
-  if (saveRecipe) {
-    savePreparationAsRecipe();
+    if (saveRecipe) {
+      savePreparationAsRecipe();
+    }
+  } catch (e) {
+    console.log("ERROR", e);
+  } finally {
+    selectRecipe.value = "";
+    quantity.value = null;
+    openSaveConfirmModal.value = false;
+    openRecipeModal.value = true;
   }
-
-  reset();
-  selectRecipe.value = "";
-  quantity.value = null;
-  openSaveConfirmModal.value = false;
-  openRecipeModal.value = true;
 };
 const savePreparationAsRecipe = () => {
   if (
@@ -246,7 +249,7 @@ const handleMeasureAlone = (index: number) => {
       </template>
     </NavBar>
 
-    <div class="flex-1 max-w-4xl md:max-w-7xl mx-auto w-full p-2 lg:p-8">
+    <div class="flex-1 max-w-4xl md:max-w-7xl mx-auto w-full p-1 lg:p-2">
       <ModalClean
         :active="openClean"
         @close-modal="openClean = false"

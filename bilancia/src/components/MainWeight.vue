@@ -32,21 +32,19 @@ const totalWeightSoFar = computed(
   () =>
     props.preparation.ingredients.reduce((sum, ing) => sum + ing.weight, 0) +
     props.ingredient.grams -
-    props.ingredient.weight,
+    props.ingredient.weight +
+    props.preparation.tareWeight,
 );
 </script>
 <template>
   <div
     id="main-status-card"
-    class="bg-white shadow-xl rounded-xl p-6 mb-8 border border-teal-200"
+    class="bg-white shadow-xl rounded-xl p-2 mb-2 border border-teal-200"
   >
     <!-- DISPLAY PRINCIPAL -->
-    <div class="flex flex-col items-center justify-center py-4 relative">
+    <div class="flex flex-col items-center justify-center py-2 relative">
       <!-- Main Weight Display -->
-      <div
-        class="flex items-end justify-center relative w-full"
-        v-if="step >= 0"
-      >
+      <div class="flex items-end justify-center relative w-full">
         <div
           id="main-progress-bar-container"
           class="absolute inset-0 flex items-center overflow-hidden rounded"
@@ -87,33 +85,36 @@ const totalWeightSoFar = computed(
       </div>
 
       <!-- Small Instruction/Target Text -->
-      <p
-        id="target-weight-display"
-        class="text-center text-gray-700 font-semibold text-lg relative z-10"
-      >
-        <template v-if="step < 0"> Peso del Contenitore </template>
-        <template v-else>
-          {{ preparation.ingredients[step].name }}:
-          {{ preparation.ingredients[step].grams.toFixed(0) }} g
-        </template>
-      </p>
+      <div class="flex flex-wrap mt-2 justify-between w-full">
+        <div
+          id="target-weight-display"
+          class="text-gray-700 text-lg relative z-10"
+        >
+          <template v-if="step < 0"> Peso del Contenitore </template>
+          <template v-else>
+            {{ preparation.ingredients[step].name }}:<br />
+            <span class="text-3xl font-semibold">
+              {{ preparation.ingredients[step].grams.toFixed(0) }} g</span
+            >
+          </template>
+        </div>
 
-      <p
-        v-if="step >= 0"
-        class="text-center text-gray-700 font-semibold text-md mt-2 relative z-10"
-      >
-        Peso Lordo da aggiungere:<br />
-        {{ totalWeightSoFar.toFixed(0) }} g
-      </p>
+        <div v-if="step >= 0" class="text-gray-700 text-lg relative z-10">
+          Peso Lordo da aggiungere:<br />
+          <span class="text-3xl font-semibold"
+            >{{ totalWeightSoFar.toFixed(0) }} g</span
+          >
+        </div>
+      </div>
 
       <!-- Percentage text below -->
-      <p
+      <!-- <p
         id="main-progress-percent"
         class="text-sm font-medium text-gray-500 text-center mt-1 progress-color-black relative z-10"
         v-if="step >= 0"
       >
         {{ getPercentage(ingredient).toFixed(0) }}% Versato
-      </p>
+      </p> -->
     </div>
 
     <!-- INSTRUCCIÓN ACTUAL -->
@@ -127,7 +128,7 @@ const totalWeightSoFar = computed(
     </div>
 
     <!-- ACCIONES DE PREPARACIÓN -->
-    <div id="prep-actions" class="flex flex-wrap gap-2 mt-2 justify-center">
+    <div id="prep-actions" class="flex flex-wrap gap-1 pt-2 justify-center">
       <template v-if="preparation.name">
         <button
           v-if="step < 0"
