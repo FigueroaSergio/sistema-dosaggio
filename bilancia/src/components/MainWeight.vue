@@ -28,13 +28,18 @@ const finish = computed(
     props.preparation.ingredients.length - 1 === props.step ||
     props.preparation.ingredients.every((ing) => ing.weight !== 0),
 );
-const totalWeightSoFar = computed(
-  () =>
-    props.preparation.ingredients.reduce((sum, ing) => sum + ing.weight, 0) +
+const totalWeightSoFar = computed(() => {
+  const onScaleWeight = props.preparation.ingredients.reduce(
+    (sum, ing) => sum + (ing.separatelyMeasured ? 0 : ing.weight),
+    0,
+  );
+  return (
+    onScaleWeight +
     props.ingredient.grams -
-    props.ingredient.weight +
-    props.preparation.tareWeight,
-);
+    (props.ingredient.separatelyMeasured ? 0 : props.ingredient.weight) +
+    props.preparation.tareWeight
+  );
+});
 </script>
 <template>
   <div
@@ -130,7 +135,7 @@ const totalWeightSoFar = computed(
     <!-- ACCIONES DE PREPARACIÓN -->
     <div id="prep-actions" class="flex flex-wrap gap-1 pt-2 justify-center">
       <template v-if="preparation.name">
-        <button
+        <!-- <button
           v-if="step < 0"
           id="azzera-btn"
           class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
@@ -138,7 +143,7 @@ const totalWeightSoFar = computed(
           title="Azzera la tara"
         >
           Azzera
-        </button>
+        </button> -->
 
         <button
           id="recalc-btn"
@@ -162,7 +167,7 @@ const totalWeightSoFar = computed(
           @click="handleAction($event, 'next')"
           title="Passa all'ingrediente successivo"
         >
-          {{ step < 0 ? "Tara" : "Continua" }}
+          Continua
         </button>
 
         <button

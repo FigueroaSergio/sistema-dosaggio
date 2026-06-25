@@ -26,7 +26,6 @@ const quantity = ref<number | null>(null);
 const openRecipeModal = ref(false);
 const openSaveConfirmModal = ref(false);
 const openPausedModal = ref(false);
-const isSingleMeasurement = ref(false);
 const singleMeasurementSource = ref<{
   preparation: Preparation;
   step: number;
@@ -53,7 +52,6 @@ const {
   setStep,
   next,
   reCalculate,
-  azzera,
   reset,
   loadPreparation,
 } = usePreparation();
@@ -108,12 +106,25 @@ const onConfirmQuantity = () => {
 };
 
 const onFinish = () => {
-  if (isSingleMeasurement.value && singleMeasurementSource.value) {
+  if (singleMeasurementSource.value) {
     const { preparation: sourcePreparation, step: sourceStep } =
       singleMeasurementSource.value;
+    const measuredWeight = preparation.ingredients[0]?.weight || 0;
 
-    loadPreparation({ ...sourcePreparation }, sourceStep);
-    isSingleMeasurement.value = false;
+    const updatedIngredients = sourcePreparation.ingredients.map((ing, idx) =>
+      idx === sourceStep
+        ? { ...ing, weight: measuredWeight, separatelyMeasured: true }
+        : ing,
+    );
+
+    const nextStep = Math.min(
+      sourceStep + 1,
+      sourcePreparation.ingredients.length - 1,
+    );
+    loadPreparation(
+      { ...sourcePreparation, ingredients: updatedIngredients },
+      nextStep,
+    );
     singleMeasurementSource.value = null;
     return;
   }
@@ -210,7 +221,6 @@ const goHome = async () => {
 
 const handleMeasureAlone = (index: number) => {
   const ingredient = preparation.ingredients[index];
-  isSingleMeasurement.value = true;
   singleMeasurementSource.value = {
     preparation: { ...preparation },
     step: index,
@@ -292,7 +302,7 @@ const handleMeasureAlone = (index: number) => {
       <div
         class="md:grid md:grid-cols-12 md:gap-2 items-stretch flex-1 min-h-0"
       >
-        <div class="md:col-span-6">
+        <div class="md:col-span-6 flex flex-col justify-between min-h-0">
           <main-weight
             :ingredient="currentStep"
             :preparation="preparation"
@@ -301,7 +311,6 @@ const handleMeasureAlone = (index: number) => {
             @re-calc="reCalculate"
             @finish="onFinish"
             @save-recipe="savePreparationAsRecipe"
-            @azzera="azzera(weight)"
             @pause="onPause"
           ></main-weight>
           <RecipeComponent
@@ -316,7 +325,7 @@ const handleMeasureAlone = (index: number) => {
             :step="step"
             @select="setStep"
             @measure-alone="handleMeasureAlone"
-            :showActions="!isSingleMeasurement"
+            :showActions="!singleMeasurementSource"
           ></table-recipe>
         </div>
       </div>

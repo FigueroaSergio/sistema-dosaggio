@@ -72,6 +72,12 @@ pub fn run() {
             ",
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 3,
+            description: "add_separately_measured_to_paused_ingredients",
+            sql: "ALTER TABLE paused_preparation_ingredients ADD COLUMN separately_measured INTEGER DEFAULT 0;",
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

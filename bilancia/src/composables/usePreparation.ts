@@ -1,6 +1,9 @@
 import { computed, ComputedRef, reactive, ref } from "vue";
 import { Ingredient, Recipe } from "./useRecipes";
-export type IngredientPreparation = Ingredient & { weight: number };
+export type IngredientPreparation = Ingredient & {
+  weight: number;
+  separatelyMeasured?: boolean;
+};
 export type Preparation = {
   name: string;
   ingredients: IngredientPreparation[];
@@ -29,6 +32,12 @@ export function usePreparation() {
   );
   const totalNet = computed(() =>
     preparation.ingredients.reduce((prev, curr) => prev + curr.grams, 0),
+  );
+  const separateSum = computed(() =>
+    preparation.ingredients.reduce(
+      (prev, curr) => prev + (curr.separatelyMeasured ? curr.weight : 0),
+      0,
+    ),
   );
   const startRecipe = (recipe: Recipe, quantity: number) => {
     preparation.name = recipe.name;
@@ -66,8 +75,9 @@ export function usePreparation() {
       preparation.tareWeight = weight;
       return;
     }
+    const scaleBasedTotal = total.value - separateSum.value;
     preparation.ingredients[step.value].weight =
-      weight - (total.value - preparation.ingredients[step.value].weight);
+      weight - (scaleBasedTotal - preparation.ingredients[step.value].weight);
   };
   const scaleRecipeToQuantity = (desiredQuantityGrams: number) => {
     const recipeTotalWeight = totalNet.value;
@@ -142,6 +152,7 @@ export function usePreparation() {
     azzera,
     totalNet,
     total,
+    separateSum,
     currentStep,
     step,
     reset,

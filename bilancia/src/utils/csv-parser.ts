@@ -47,7 +47,7 @@ export function exportRecipesToCSV(recipes: RecipeRegistry): string {
 
   Object.values(recipes).forEach((recipe) => {
     recipe.ingredients.forEach((ingredient, index) => {
-      const quantity = ingredient.grams.toFixed(3).replace(".", ",");
+      const quantity = (ingredient.grams || 0).toFixed(3).replace(".", ",");
       const tolerance = (ingredient.tolerance || 0)
         .toFixed(3)
         .replace(".", ",");

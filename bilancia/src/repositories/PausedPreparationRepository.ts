@@ -21,9 +21,9 @@ export const PausedPreparationRepository = {
 
     for (const row of rows) {
       const ingredients = await database.select<
-        { name: string; grams: number; tolerance: number; weight: number }[]
+        { name: string; grams: number; tolerance: number; weight: number; separately_measured: number }[]
       >(
-        "SELECT name, grams, tolerance, weight FROM paused_preparation_ingredients WHERE paused_preparation_id = $1",
+        "SELECT name, grams, tolerance, weight, separately_measured FROM paused_preparation_ingredients WHERE paused_preparation_id = $1",
         [row.id],
       );
 
@@ -40,6 +40,7 @@ export const PausedPreparationRepository = {
             grams: i.grams,
             tolerance: i.tolerance,
             weight: i.weight,
+            separatelyMeasured: i.separately_measured === 1,
           })),
         },
       });
@@ -68,9 +69,9 @@ export const PausedPreparationRepository = {
 
     const row = rows[0];
     const ingredients = await database.select<
-      { name: string; grams: number; tolerance: number; weight: number }[]
+      { name: string; grams: number; tolerance: number; weight: number; separately_measured: number }[]
     >(
-      "SELECT name, grams, tolerance, weight FROM paused_preparation_ingredients WHERE paused_preparation_id = $1",
+      "SELECT name, grams, tolerance, weight, separately_measured FROM paused_preparation_ingredients WHERE paused_preparation_id = $1",
       [row.id],
     );
 
@@ -87,6 +88,7 @@ export const PausedPreparationRepository = {
           grams: i.grams,
           tolerance: i.tolerance,
           weight: i.weight,
+          separatelyMeasured: i.separately_measured === 1,
         })),
       },
     };
@@ -108,8 +110,15 @@ export const PausedPreparationRepository = {
 
     for (const ing of pausedPreparation.preparation.ingredients) {
       await database.execute(
-        "INSERT INTO paused_preparation_ingredients (paused_preparation_id, name, grams, tolerance, weight) VALUES ($1, $2, $3, $4, $5)",
-        [pausedPreparation.id, ing.name, ing.grams, ing.tolerance, ing.weight],
+        "INSERT INTO paused_preparation_ingredients (paused_preparation_id, name, grams, tolerance, weight, separately_measured) VALUES ($1, $2, $3, $4, $5, $6)",
+        [
+          pausedPreparation.id,
+          ing.name,
+          ing.grams,
+          ing.tolerance,
+          ing.weight,
+          ing.separatelyMeasured ? 1 : 0,
+        ],
       );
     }
   },

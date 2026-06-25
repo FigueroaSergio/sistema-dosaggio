@@ -10,6 +10,8 @@ import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
 import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
 import NavBar from "../components/NavBar.vue";
+import { save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
 
 const nameFilter = ref("");
 
@@ -149,27 +151,28 @@ const handleImport = (event: Event) => {
 };
 
 const onExport = async () => {
-  const csvData = exportRecipesToCSV(recipes);
+  let csvData = "";
+  try {
+    csvData = exportRecipesToCSV(recipes);
+  } catch (e) {
+    alert("Export Tauri: " + e);
+  }
 
-  if ((window as any).__TAURI_INTERNALS__) {
-    try {
-      const { save } = await import("@tauri-apps/plugin-dialog");
-      const { writeTextFile } = await import("@tauri-apps/plugin-fs");
+  try {
+    const path = await save({
+      filters: [{ name: "CSV", extensions: ["csv"] }],
+      defaultPath: "recipes.csv",
+    });
 
-      const path = await save({
-        filters: [{ name: "CSV", extensions: ["csv"] }],
-        defaultPath: "recipes.csv",
-      });
-
-      if (path) {
-        await writeTextFile(path, csvData);
-        alert("Esportazione completata con successo.");
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Errore durante l'esportazione.");
+    if (path) {
+      await writeTextFile(path, csvData);
+      alert(`File salvato in: ${path}`);
+      return;
     }
-  } else {
+  } catch (e) {
+    alert("Export Tauri: " + e);
+  }
+  try {
     const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -179,6 +182,8 @@ const onExport = async () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  } catch (e) {
+    alert("Export Tauri Blob " + e);
   }
 };
 </script>
