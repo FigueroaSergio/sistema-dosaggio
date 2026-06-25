@@ -93,7 +93,7 @@ const totalWeightSoFar = computed(
           <template v-if="step < 0"> Peso del Contenitore </template>
           <template v-else>
             {{ preparation.ingredients[step].name }}:<br />
-            <span class="text-3xl font-semibold">
+            <span class="text-6xl font-semibold">
               {{ preparation.ingredients[step].grams.toFixed(0) }} g</span
             >
           </template>
@@ -101,7 +101,7 @@ const totalWeightSoFar = computed(
 
         <div v-if="step >= 0" class="text-gray-700 text-lg relative z-10">
           Peso Lordo da aggiungere:<br />
-          <span class="text-3xl font-semibold"
+          <span class="text-6xl font-semibold"
             >{{ totalWeightSoFar.toFixed(0) }} g</span
           >
         </div>

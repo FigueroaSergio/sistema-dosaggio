@@ -7,8 +7,8 @@ defineEmits<{
 defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
 </script>
 <template>
-  <div class="bg-white shadow-lg rounded-xl">
-    <div class="overflow-x-auto rounded-b-xl max-h-[calc(100vh-20rem)] overflow-y-auto">
+  <div class="bg-white shadow-lg rounded-xl h-full flex flex-col min-h-0">
+    <div class="overflow-x-auto rounded-b-xl flex-1 min-h-0 overflow-y-auto">
       <table id="recipe-table" class="min-w-full divide-y divide-gray-200">
         <thead class="bg-gray-50 sticky top-0 z-10">
           <tr>

@@ -164,42 +164,48 @@ const savePreparationAsRecipe = () => {
   alert(`Ricetta "${newName}" salvata con successo!`);
 };
 
-const onPause = () => {
+const onPause = async () => {
   if (!preparation.name) return;
-  pausePreparation(preparation, step.value);
+  await pausePreparation(preparation, step.value);
   reset();
   selectRecipe.value = "";
   quantity.value = null;
   openRecipeModal.value = true;
 };
 
-const onSelectPaused = (id: string) => {
+const onSelectPaused = async (id: string) => {
   const paused = getPausedPreparation(id);
   if (paused) {
     if (preparation.name) {
-      pausePreparation(preparation, step.value);
+      await pausePreparation(preparation, step.value);
     }
     loadPreparation(paused.preparation, paused.step);
-    removePausedPreparation(id);
+    await removePausedPreparation(id);
     openPausedModal.value = false;
   }
 };
 
-const goHome = () => {
+const goHome = async () => {
   if (!preparation.name) {
     router.push("/");
     return;
   }
-  if (singleMeasurementSource.value) {
-    pausePreparation(
-      singleMeasurementSource.value?.preparation,
-      singleMeasurementSource.value?.step,
-    );
-  } else {
-    pausePreparation(preparation, step.value);
+  try {
+    if (singleMeasurementSource.value) {
+      await pausePreparation(
+        singleMeasurementSource.value?.preparation,
+        singleMeasurementSource.value?.step,
+      );
+    } else {
+      await pausePreparation(preparation, step.value);
+    }
+  } catch (e) {
+    console.log("ERROR saving preparation");
   }
-  reset();
-  router.push("/");
+  {
+    reset();
+    router.push("/");
+  }
 };
 
 const handleMeasureAlone = (index: number) => {
@@ -249,7 +255,9 @@ const handleMeasureAlone = (index: number) => {
       </template>
     </NavBar>
 
-    <div class="flex-1 max-w-4xl md:max-w-7xl mx-auto w-full p-1 lg:p-2">
+    <div
+      class="flex-1 max-w-4xl md:max-w-7xl mx-auto w-full p-1 lg:p-2 flex flex-col min-h-0"
+    >
       <ModalClean
         :active="openClean"
         @close-modal="openClean = false"
@@ -281,7 +289,9 @@ const handleMeasureAlone = (index: number) => {
         @remove="removePausedPreparation"
       ></ModalPausedRecipes>
 
-      <div class="md:grid md:grid-cols-12 md:gap-2 items-start">
+      <div
+        class="md:grid md:grid-cols-12 md:gap-2 items-stretch flex-1 min-h-0"
+      >
         <div class="md:col-span-6">
           <main-weight
             :ingredient="currentStep"
@@ -300,7 +310,7 @@ const handleMeasureAlone = (index: number) => {
             @start="openQuantityModal"
           ></RecipeComponent>
         </div>
-        <div class="md:col-span-6 flex flex-col">
+        <div class="md:col-span-6 flex flex-col min-h-0">
           <table-recipe
             :preparation="preparation"
             :step="step"
