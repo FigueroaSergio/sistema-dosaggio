@@ -2,6 +2,7 @@
 import { ref, computed } from "vue";
 import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
+import List from "./List.vue";
 import { RecipeRegistry } from "../composables/useRecipes";
 
 const { t } = useI18n();
@@ -16,9 +17,9 @@ const searchQuery = ref("");
 
 const filteredRecipes = computed(() => {
   const query = searchQuery.value.toLowerCase();
-  return Object.keys(props.recipes).filter((name) =>
-    name.toLowerCase().includes(query),
-  );
+  return Object.keys(props.recipes)
+    .filter((name) => name.toLowerCase().includes(query))
+    .map((name) => ({ name }));
 });
 </script>
 
@@ -38,21 +39,10 @@ const filteredRecipes = computed(() => {
         autofocus
       />
     </div>
-    <div class="flex-1 overflow-y-auto">
-      <div
-        v-if="filteredRecipes.length === 0"
-        class="text-center text-gray-500 py-4"
-      >
-        {{ t('modal.recipeSelect.noResults') }}
-      </div>
-      <button
-        v-for="name in filteredRecipes"
-        :key="name"
-        @click="$emit('select', name)"
-        class="w-full text-left p-3 mb-2 border rounded-lg hover:bg-teal-50 hover:border-teal-300 transition"
-      >
-        <span class="font-bold text-gray-800">{{ name }}</span>
-      </button>
-    </div>
+    <List
+      :items="filteredRecipes"
+      empty-message=""
+      @select="(key: string) => $emit('select', key)"
+    />
   </Modal>
 </template>

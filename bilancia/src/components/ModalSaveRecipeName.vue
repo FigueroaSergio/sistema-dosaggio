@@ -2,10 +2,11 @@
 import { ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
+import BaseBtn from "./BaseBtn.vue";
 
 const { t } = useI18n();
 
-const props = defineProps<{ 
+const props = defineProps<{
   active: boolean;
   defaultName: string;
 }>();
@@ -17,11 +18,14 @@ const emit = defineEmits<{
 
 const recipeName = ref("");
 
-watch(() => props.active, (newActive) => {
-  if (newActive) {
-    recipeName.value = props.defaultName;
-  }
-});
+watch(
+  () => props.active,
+  (newActive) => {
+    if (newActive) {
+      recipeName.value = props.defaultName;
+    }
+  },
+);
 
 const onConfirm = () => {
   if (recipeName.value.trim()) {
@@ -37,9 +41,9 @@ const onConfirm = () => {
     :title="t('modal.saveRecipeName.title')"
     @close-modal="$emit('close-modal')"
   >
-    <div class="p-4">
+    <div>
       <label class="block text-sm font-semibold text-gray-700 mb-2">
-        {{ t('modal.saveRecipeName.instruction') }}
+        {{ t("modal.saveRecipeName.instruction") }}
       </label>
       <input
         v-model="recipeName"
@@ -48,21 +52,19 @@ const onConfirm = () => {
         :placeholder="t('modal.saveRecipeName.placeholder')"
         @keyup.enter="onConfirm"
       />
-      <div class="flex justify-end gap-4">
-        <button
-          @click="$emit('close-modal')"
-          class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition"
-        >
-          {{ t('modal.saveRecipeName.cancel') }}
-        </button>
-        <button
-          @click="onConfirm"
-          class="px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm"
-          :disabled="!recipeName.trim()"
-        >
-          {{ t('modal.saveRecipeName.save') }}
-        </button>
-      </div>
     </div>
+    <template #footer>
+      <BaseBtn variant="secondary" size="lg" @click="$emit('close-modal')">
+        {{ t("modal.saveRecipeName.cancel") }}
+      </BaseBtn>
+      <BaseBtn
+        variant="primary"
+        size="lg"
+        :disabled="!recipeName.trim()"
+        @click="onConfirm"
+      >
+        {{ t("modal.saveRecipeName.save") }}
+      </BaseBtn>
+    </template>
   </Modal>
 </template>

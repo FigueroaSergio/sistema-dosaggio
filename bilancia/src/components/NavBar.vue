@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from "vue";
 import { useI18n } from "vue-i18n";
+import BaseBtn from "./BaseBtn.vue";
 
 defineProps<{
   title: string;
@@ -47,27 +48,30 @@ const languages = [
       </div>
       <!-- Language Selector (Desktop) -->
       <div class="relative hidden lg:block">
-        <button
+        <BaseBtn
+          variant="ghost"
           @click="toggleLang"
-          class="p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors shrink-0 flex items-center gap-1"
+          class="!p-2 shrink-0"
           aria-label="Change language"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="h-5 w-5"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
-            />
-          </svg>
+          <template #icon>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+              />
+            </svg>
+          </template>
           <span class="text-sm font-medium">{{ locale.toUpperCase() }}</span>
-        </button>
+        </BaseBtn>
         <Transition
           enter-active-class="transition duration-150 ease-out"
           enter-from-class="opacity-0 scale-95"
@@ -97,9 +101,10 @@ const languages = [
       </div>
 
       <!-- Mobile Menu Button -->
-      <button
+      <BaseBtn
+        variant="ghost"
+        class="lg:hidden !p-2 shrink-0"
         @click="toggleMenu"
-        class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
         aria-label="Toggle menu"
       >
         <svg
@@ -124,7 +129,7 @@ const languages = [
             d="M6 18L18 6M6 6l12 12"
           />
         </svg>
-      </button>
+      </BaseBtn>
     </div>
 
     <!-- Mobile Sidebar/Drawer Overlay -->
@@ -163,9 +168,10 @@ const languages = [
       >
         <div class="flex items-center justify-between mb-8">
           <span class="font-bold text-gray-800">{{ $t("nav.menu") }}</span>
-          <button
+          <BaseBtn
+            variant="ghost"
+            class="lg:hidden !p-2 shrink-0"
             @click="toggleMenu"
-            class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -181,7 +187,7 @@ const languages = [
                 d="M6 18L18 6M6 6l12 12"
               />
             </svg>
-          </button>
+          </BaseBtn>
         </div>
 
         <!-- Language Selector (Mobile) -->

@@ -6,6 +6,7 @@ import {
   Preparation,
   getPercentage,
 } from "../composables/usePreparation";
+import BaseBtn from "./BaseBtn.vue";
 const { t } = useI18n();
 const emit = defineEmits<{
   (e: "re-calc" | "next" | "finish" | "azzera" | "pause"): void;
@@ -131,40 +132,49 @@ const totalWeightSoFar = computed(() => {
     <!-- ACCIONES DE PREPARACIÓN -->
     <div id="prep-actions" class="flex flex-wrap gap-1 pt-2 justify-center">
       <template v-if="preparation.name">
-        <button
+        <BaseBtn
           id="recalc-btn"
-          class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          variant="warning"
+          size="lg"
           :title="t('weight.recalcTooltip')"
+          class="w-full max-w-xs sm:max-w-[200px]"
           @click="handleAction($event, 're-calc')"
         >
           {{ t("weight.recalculate") }}
-        </button>
-        <button
+        </BaseBtn>
+        <BaseBtn
           id="pause-btn"
-          class="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg shadow-md hover:bg-indigo-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          variant="info"
+          size="lg"
           :title="t('weight.pauseTooltip')"
+          class="w-full max-w-xs sm:max-w-[200px]"
           @click="handleAction($event, 'pause')"
         >
           {{ t("weight.pause") }}
-        </button>
-        <button
+        </BaseBtn>
+        <BaseBtn
           id="next-ingredient-btn"
-          class="flex-1 px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
-          @click="handleAction($event, 'next')"
+          variant="primary"
+          size="lg"
+          block
           :title="t('weight.nextTooltip')"
+          class="flex-1"
+          @click="handleAction($event, 'next')"
         >
           {{ t("weight.continue") }}
-        </button>
+        </BaseBtn>
 
-        <button
+        <BaseBtn
           id="finish-btn"
-          class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          variant="success"
+          size="lg"
           :title="t('weight.recalcTooltip')"
+          class="w-full max-w-xs sm:max-w-[200px]"
           v-if="finish"
           @click="handleAction($event, 'finish')"
         >
           {{ t("weight.complete") }}
-        </button>
+        </BaseBtn>
       </template>
     </div>
   </div>

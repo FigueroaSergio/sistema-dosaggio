@@ -1,6 +1,7 @@
-<script setup>
-import { reactive, computed } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 defineEmits(["close-modal"]);
+defineSlots();
 const {
   active = false,
   title = "Modal",
@@ -39,6 +40,9 @@ const style = computed(() => ({ display: active ? "flex" : "none" }));
         </div>
         <div class="overflow-y-auto min-h-0 flex-1">
           <slot></slot>
+        </div>
+        <div class="flex justify-end mt-4 pt-4 border-t border-gray-200 gap-3">
+          <slot name="footer"></slot>
         </div>
       </div>
     </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import { Preparation, getPercentage } from "../composables/usePreparation";
+import BaseBtn from "./BaseBtn.vue";
 const { t } = useI18n();
 defineEmits<{
   (e: "select", idx: number): void;
@@ -18,32 +19,32 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
               scope="col"
               class="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              {{ t('table.ingredient') }}
+              {{ t("table.ingredient") }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              {{ t('table.required') }}
+              {{ t("table.required") }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              {{ t('table.added') }}
+              {{ t("table.added") }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              {{ t('table.poured') }}
+              {{ t("table.poured") }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
               v-if="showActions"
             >
-              {{ t('table.action') }}
+              {{ t("table.action") }}
             </th>
           </tr>
         </thead>
@@ -51,7 +52,11 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
           <tr
             v-for="(ingredient, index) in preparation.ingredients"
             :key="index"
-            :class="index === step ? 'current-ingredient-row' : ''"
+            :class="
+              index === step
+                ? '!border-l-4 !border-teal-500 !border-t-transparent bg-teal-50'
+                : ''
+            "
             @click="$emit('select', index)"
             class="cursor-pointer"
           >
@@ -70,12 +75,13 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
               {{ getPercentage(ingredient).toFixed(0) }}%
             </td>
             <td class="px-2 py-1 text-center" v-if="showActions">
-              <button
+              <BaseBtn
+                variant="primary"
+                size="xs"
                 @click.stop="$emit('measure-alone', index)"
-                class="px-2 py-2 bg-teal-100 text-teal-700 text-xs font-bold rounded-lg hover:bg-teal-200 transition"
               >
-                {{ t('table.measure') }}
-              </button>
+                {{ t("table.measure") }}
+              </BaseBtn>
             </td>
           </tr>
         </tbody>
@@ -85,7 +91,6 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
 </template>
 <style lang="css">
 .current-ingredient-row {
-  background-color: #f0fdf4 !important;
   border-left: 5px solid #059669 !important;
 }
 progress::-webkit-progress-bar {

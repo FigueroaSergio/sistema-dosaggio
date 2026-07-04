@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
+import BaseBtn from "./BaseBtn.vue";
 const { t } = useI18n();
 defineEmits<{ (e: "close-modal"): void; (e: "confirm"): void }>();
 const { active } = defineProps({ active: Boolean });
@@ -22,13 +23,17 @@ const { active } = defineProps({ active: Boolean });
           {{ t("modal.clean.warning") }}
         </p>
       </div>
-      <button
+    </div>
+    <template #footer>
+      <BaseBtn
         id="clean-scale-confirm-btn"
-        class="w-full flex-1 px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
+        variant="primary"
+        size="lg"
+        block
         @click="$emit('confirm')"
       >
         {{ t("modal.clean.done") }}
-      </button>
-    </div>
+      </BaseBtn>
+    </template>
   </Modal>
 </template>

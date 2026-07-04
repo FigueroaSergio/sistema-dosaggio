@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
+import BaseBtn from "./BaseBtn.vue";
 
 const { t } = useI18n();
 
@@ -22,18 +23,12 @@ defineEmits<{
         {{ t('modal.confirmSave.question') }}
       </p>
       <div class="flex justify-center flex-wrap gap-4">
-        <button
-          @click="$emit('confirm', false)"
-          class="px-6 py-2 border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition"
-        >
+        <BaseBtn variant="secondary" outline @click="$emit('confirm', false)">
           {{ t('modal.confirmSave.no') }}
-        </button>
-        <button
-          @click="$emit('confirm', true)"
-          class="px-6 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm"
-        >
+        </BaseBtn>
+        <BaseBtn variant="primary" @click="$emit('confirm', true)">
           {{ t('modal.confirmSave.yes') }}
-        </button>
+        </BaseBtn>
       </div>
     </div>
   </Modal>

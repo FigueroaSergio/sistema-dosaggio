@@ -11,6 +11,8 @@ import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
 import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
 import NavBar from "../components/NavBar.vue";
+import BaseBtn from "../components/BaseBtn.vue";
+import List from "../components/List.vue";
 import { save, ask, message } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import * as Sentry from "@sentry/vue";
@@ -86,7 +88,7 @@ const onSave = async () => {
   }
 
   await addRecipe(recipeData.name, JSON.parse(JSON.stringify(recipeData)));
-  await message(t('manage.recipeSaved', { name: recipeData.name }));
+  await message(t("manage.recipeSaved", { name: recipeData.name }));
 
   selectedRecipeName.value = recipeData.name;
   isEditing.value = true;
@@ -94,7 +96,7 @@ const onSave = async () => {
 };
 
 const onDelete = async (name: string) => {
-  if (await ask(t('manage.confirmDelete'), { kind: "warning" })) {
+  if (await ask(t("manage.confirmDelete"), { kind: "warning" })) {
     deleteRecipe(name);
     if (selectedRecipeName.value === name) {
       createNewRecipe();
@@ -108,10 +110,10 @@ const processImportContent = async (content: string) => {
     parsedRecipes.forEach((r) => {
       addRecipe(r.name, r);
     });
-    await message(t('manage.importSuccess', { count: parsedRecipes.length }));
+    await message(t("manage.importSuccess", { count: parsedRecipes.length }));
     if (fileInput.value) fileInput.value.value = "";
   } catch (err) {
-    await message(t('manage.importError'));
+    await message(t("manage.importError"));
   }
 };
 
@@ -129,13 +131,15 @@ const triggerImport = async () => {
       if (selected && typeof selected === "string") {
         const content = await readTextFile(selected);
         processImportContent(content);
-        Sentry.logger.info("Recipes imported via Tauri file dialog", { path: selected });
+        Sentry.logger.info("Recipes imported via Tauri file dialog", {
+          path: selected,
+        });
       }
     } catch (err) {
       Sentry.captureException(err);
       Sentry.logger.error("Failed to import recipes via Tauri");
       console.error(err);
-      await message(t('manage.importTauriError'));
+      await message(t("manage.importTauriError"));
     }
   } else {
     fileInput.value?.click();
@@ -213,30 +217,18 @@ const onExport = async () => {
 
     <NavBar :title="$t('manage.title')">
       <template #actions>
-        <button
-          @click="createNewRecipe"
-          class="px-4 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm"
-        >
-          {{ $t('manage.new') }}
-        </button>
-        <button
-          @click="triggerImport"
-          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
-        >
-          {{ $t('manage.import') }}
-        </button>
-        <button
-          @click="onExport"
-          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
-        >
-          {{ $t('manage.export') }}
-        </button>
-        <button
-          @click="router.push('/')"
-          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
-        >
-          {{ $t('nav.home') }}
-        </button>
+        <BaseBtn variant="primary" @click="createNewRecipe">
+          {{ $t("manage.new") }}
+        </BaseBtn>
+        <BaseBtn variant="secondary" outline @click="triggerImport">
+          {{ $t("manage.import") }}
+        </BaseBtn>
+        <BaseBtn variant="secondary" outline @click="onExport">
+          {{ $t("manage.export") }}
+        </BaseBtn>
+        <BaseBtn variant="secondary" outline @click="router.push('/')">
+          {{ $t("nav.home") }}
+        </BaseBtn>
       </template>
     </NavBar>
 
@@ -249,7 +241,7 @@ const onExport = async () => {
         class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-100px)] md:h-[calc(100vh-100px)] overflow-hidden"
       >
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
-          {{ $t('manage.recipeList') }}
+          {{ $t("manage.recipeList") }}
         </div>
         <div class="p-3 border-b">
           <input
@@ -259,50 +251,40 @@ const onExport = async () => {
             class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
           />
         </div>
-        <div class="flex-1 overflow-y-auto">
-          <div
-            v-if="Object.keys(filteredRecipes).length === 0"
-            class="text-gray-500 text-center py-8"
-          >
-            {{ $t('manage.noRecipes') }}
-          </div>
-          <div
-            v-for="recipe in filteredRecipes"
-            :key="recipe.name"
-            @click="selectRecipeToEdit(recipe)"
-            class="p-2 border-b cursor-pointer transition flex justify-between items-center"
-            :class="{
-              'border-teal-500 bg-teal-50 ring-1 ring-teal-500':
-                selectedRecipeName === recipe.name,
-              'border-gray-200 hover:bg-gray-200':
-                selectedRecipeName !== recipe.name,
-            }"
-          >
-            <div>
-              <div class="font-bold text-gray-800">{{ recipe.name }}</div>
-              <div class="text-sm text-gray-500 mt-1">
-                {{ $t('manage.ingredientsCount', { count: recipe.ingredients.length }) }}
-              </div>
-            </div>
-            <button
-              @click.stop="onDelete(recipe.name)"
-              class="text-red-400 hover:text-red-600 p-2 rounded-full hover:bg-red-50 transition"
+        <List
+          :items="filteredRecipes"
+          :selected-key="selectedRecipeName"
+          :empty-message="$t('manage.noRecipes')"
+          @select="(key: string) => selectRecipeToEdit(recipes[key])"
+        >
+          <template #description="{ item }">
+            {{
+              $t("manage.ingredientsCount", { count: item.ingredients.length })
+            }}
+          </template>
+          <template #actions="{ item }">
+            <BaseBtn
+              variant="danger"
+              size="xs"
+              @click.stop="onDelete(item.name)"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="h-5 w-5"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fill-rule="evenodd"
-                  d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
-                  clip-rule="evenodd"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
+              <template #icon>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                    clip-rule="evenodd"
+                  />
+                </svg>
+              </template>
+            </BaseBtn>
+          </template>
+        </List>
       </div>
 
       <!-- Dettaglio ricetta form -->
@@ -312,24 +294,24 @@ const onExport = async () => {
         <div
           class="p-4 border-b bg-gray-50 font-semibold text-gray-700 flex justify-between items-center"
         >
-          <span>{{ $t('manage.recipeDetail') }}</span>
+          <span>{{ $t("manage.recipeDetail") }}</span>
           <span
             v-if="isEditing"
             class="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded"
-            >{{ $t('manage.editMode') }}</span
+            >{{ $t("manage.editMode") }}</span
           >
           <span
             v-else
             class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded"
-            >{{ $t('manage.newRecipe') }}</span
+            >{{ $t("manage.newRecipe") }}</span
           >
         </div>
 
         <div class="flex-1 overflow-y-auto p-4">
           <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-700 mb-2"
-              >{{ $t('manage.recipeName') }}</label
-            >
+            <label class="block text-sm font-semibold text-gray-700 mb-2">{{
+              $t("manage.recipeName")
+            }}</label>
             <input
               type="text"
               v-model="recipeData.name"
@@ -340,14 +322,14 @@ const onExport = async () => {
               class="text-red-600 text-sm mt-1"
               v-if="errors && errors.first('root.name')"
             >
-              {{ $t('manage.recipeNameRequired') }}
+              {{ $t("manage.recipeNameRequired") }}
             </div>
           </div>
 
           <div class="mb-6">
-            <label class="block text-sm font-semibold text-gray-700 mb-2"
-              >{{ $t('manage.notes') }}</label
-            >
+            <label class="block text-sm font-semibold text-gray-700 mb-2">{{
+              $t("manage.notes")
+            }}</label>
             <textarea
               v-model="recipeData.note"
               :placeholder="$t('manage.notesPlaceholder')"
@@ -358,19 +340,18 @@ const onExport = async () => {
 
           <div>
             <div class="flex justify-between items-center mb-3">
-              <h4 class="text-sm font-semibold text-gray-700">{{ $t('manage.ingredients') }}</h4>
-              <button
-                @click="onAddIngredient"
-                class="text-sm text-teal-600 hover:text-teal-800 font-medium px-3 py-1 bg-teal-50 rounded hover:bg-teal-100 transition"
-              >
-                {{ $t('manage.add') }}
-              </button>
+              <h4 class="text-sm font-semibold text-gray-700">
+                {{ $t("manage.ingredients") }}
+              </h4>
+              <BaseBtn variant="ghost" size="sm" @click="onAddIngredient">
+                {{ $t("manage.add") }}
+              </BaseBtn>
             </div>
             <div
               class="text-red-600 text-sm mb-3"
               v-if="errors && errors.first(`root.ingredients`)"
             >
-              {{ $t('manage.addAtLeastOne') }}
+              {{ $t("manage.addAtLeastOne") }}
             </div>
 
             <div class="space-y-4">
@@ -380,31 +361,35 @@ const onExport = async () => {
                 class="bg-gray-50 p-4 rounded-xl border border-gray-200 shadow-sm relative group"
               >
                 <!-- Remove button positioned at top right for easy access -->
-                <button
-                  @click="onRemoveIngredient(idx)"
-                  class="absolute top-2 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
+                <BaseBtn
+                  variant="danger"
+                  size="xs"
+                  class="absolute top-2 right-2"
                   :title="$t('manage.removeIngredient')"
+                  @click="onRemoveIngredient(idx)"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="h-5 w-5"
-                    viewBox="0 0 20 20"
-                    fill="currentColor"
-                  >
-                    <path
-                      fill-rule="evenodd"
-                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                      clip-rule="evenodd"
-                    />
-                  </svg>
-                </button>
+                  <template #icon>
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-5 w-5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                  </template>
+                </BaseBtn>
 
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
                   <!-- Name Input: Full width on mobile, 6 cols on desktop -->
                   <div class="md:col-span-6">
                     <label
                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
-                      >{{ $t('manage.ingredient') }}</label
+                      >{{ $t("manage.ingredient") }}</label
                     >
                     <input
                       type="text"
@@ -418,7 +403,7 @@ const onExport = async () => {
                         errors && errors.first(`root.ingredients[${idx}].name`)
                       "
                     >
-                      {{ $t('manage.required') }}
+                      {{ $t("manage.required") }}
                     </div>
                   </div>
 
@@ -426,7 +411,7 @@ const onExport = async () => {
                   <div class="md:col-span-3">
                     <label
                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
-                      >{{ $t('manage.weight') }}</label
+                      >{{ $t("manage.weight") }}</label
                     >
                     <input
                       type="number"
@@ -442,7 +427,7 @@ const onExport = async () => {
                         errors && errors.first(`root.ingredients[${idx}].grams`)
                       "
                     >
-                      {{ $t('manage.quantityRequired') }}
+                      {{ $t("manage.quantityRequired") }}
                     </div>
                   </div>
 
@@ -450,7 +435,7 @@ const onExport = async () => {
                   <div class="md:col-span-3">
                     <label
                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
-                      >{{ $t('manage.tolerance') }}</label
+                      >{{ $t("manage.tolerance") }}</label
                     >
                     <input
                       type="number"
@@ -482,17 +467,14 @@ const onExport = async () => {
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              {{ $t('manage.noIngredients') }}
+              {{ $t("manage.noIngredients") }}
             </div>
           </div>
 
           <div class="pt-2 bg-white flex justify-end">
-            <button
-              @click="onSave"
-              class="w-full md:w-auto px-8 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition shadow-lg active:scale-95"
-            >
-              {{ $t('manage.saveRecipe') }}
-            </button>
+            <BaseBtn variant="primary" @click="onSave">
+              {{ $t("manage.saveRecipe") }}
+            </BaseBtn>
           </div>
         </div>
       </div>
