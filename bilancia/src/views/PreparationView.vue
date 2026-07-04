@@ -16,6 +16,7 @@ import { usePausedPreparations } from "../composables/usePausedPreparations.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalPausedRecipes from "../components/ModalPausedRecipes.vue";
 import type { Recipe } from "../composables/useRecipes.ts";
+import * as Sentry from "@sentry/vue";
 
 const router = useRouter();
 
@@ -148,31 +149,38 @@ const handleSaveConfirm = async (saveRecipe: boolean) => {
   }
 };
 const savePreparationAsRecipe = () => {
-  if (
-    !preparation ||
-    !preparation.name ||
-    preparation.ingredients.length === 0
-  ) {
-    alert("Nessuna preparazione attiva da salvare.");
-    return;
+  try {
+    if (
+      !preparation ||
+      !preparation.name ||
+      preparation.ingredients.length === 0
+    ) {
+      alert("Nessuna preparazione attiva da salvare.");
+      return;
+    }
+
+    const timestamp = new Date().toLocaleString();
+    const newName = `${preparation.name} - ${timestamp}`;
+
+    const newIngredients = preparation.ingredients.map((ing) => ({
+      name: ing.name,
+      grams: ing.grams, // Salviamo le quantità target scalate
+      tolerance: ing.tolerance || 0,
+    }));
+
+    addRecipe(newName, {
+      name: newName,
+      note: preparation.note,
+      ingredients: newIngredients,
+    });
+
+    Sentry.logger.info("Preparation saved as recipe", { newName });
+    alert(`Ricetta "${newName}" salvata con successo!`);
+  } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to save preparation as recipe");
+    throw e;
   }
-
-  const timestamp = new Date().toLocaleString();
-  const newName = `${preparation.name} - ${timestamp}`;
-
-  const newIngredients = preparation.ingredients.map((ing) => ({
-    name: ing.name,
-    grams: ing.grams, // Salviamo le quantità target scalate
-    tolerance: ing.tolerance || 0,
-  }));
-
-  addRecipe(newName, {
-    name: newName,
-    note: preparation.note,
-    ingredients: newIngredients,
-  });
-
-  alert(`Ricetta "${newName}" salvata con successo!`);
 };
 
 const onPause = async () => {

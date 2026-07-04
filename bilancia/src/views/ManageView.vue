@@ -12,6 +12,7 @@ import type { ValidationError } from "../utils/Validator.ts";
 import NavBar from "../components/NavBar.vue";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
+import * as Sentry from "@sentry/vue";
 
 const nameFilter = ref("");
 
@@ -127,8 +128,11 @@ const triggerImport = async () => {
       if (selected && typeof selected === "string") {
         const content = await readTextFile(selected);
         processImportContent(content);
+        Sentry.logger.info("Recipes imported via Tauri file dialog", { path: selected });
       }
     } catch (err) {
+      Sentry.captureException(err);
+      Sentry.logger.error("Failed to import recipes via Tauri");
       console.error(err);
       alert("Errore durante l'importazione con i plugin Tauri.");
     }
@@ -155,6 +159,8 @@ const onExport = async () => {
   try {
     csvData = exportRecipesToCSV(recipes);
   } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to export recipes to CSV");
     alert("Export Tauri: " + e);
   }
 
@@ -166,10 +172,13 @@ const onExport = async () => {
 
     if (path) {
       await writeTextFile(path, csvData);
+      Sentry.logger.info("Recipes exported to file", { path });
       alert(`File salvato in: ${path}`);
       return;
     }
   } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to save exported file");
     alert("Export Tauri: " + e);
   }
   try {
@@ -182,7 +191,10 @@ const onExport = async () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    Sentry.logger.info("Recipes exported via blob download");
   } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to export recipes via blob");
     alert("Export Tauri Blob " + e);
   }
 };

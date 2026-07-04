@@ -35,7 +35,7 @@ export function useWeight(active: Ref<Boolean>) {
       }
     } else {
       console.warn(
-        `[Scale Input] Lettura bilancia non valida o vuota: "${finalReading}". Il formato atteso è "X,XX" (in Kg).`,
+        `[Scale Input] Lettura bilancia non valida o vuota: "${finalReading}". Il formato atteso è "XXX" (in g).`,
       );
     }
   }

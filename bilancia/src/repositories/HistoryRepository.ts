@@ -1,6 +1,7 @@
 import { getDb } from "./Database";
 import { HistoryEntry } from "../composables/useHistory";
 import { Preparation } from "../composables/usePreparation";
+import * as Sentry from "@sentry/vue";
 
 export const HistoryRepository = {
   async getAllHistory(): Promise<HistoryEntry[]> {
@@ -50,18 +51,25 @@ export const HistoryRepository = {
   },
 
   async addHistory(timestamp: string, preparation: Preparation): Promise<void> {
-    const database = await getDb();
-    const result = await database.execute(
-      "INSERT INTO history (timestamp, preparation_name, tare_weight, note) VALUES ($1, $2, $3, $4)",
-      [timestamp, preparation.name, preparation.tareWeight, preparation.note],
-    );
-
-    const historyId = result.lastInsertId;
-    for (const ing of preparation.ingredients) {
-      await database.execute(
-        "INSERT INTO history_ingredients (history_id, name, grams, tolerance, weight) VALUES ($1, $2, $3, $4, $5)",
-        [historyId, ing.name, ing.grams, ing.tolerance, ing.weight],
+    try {
+      const database = await getDb();
+      const result = await database.execute(
+        "INSERT INTO history (timestamp, preparation_name, tare_weight, note) VALUES ($1, $2, $3, $4)",
+        [timestamp, preparation.name, preparation.tareWeight, preparation.note],
       );
+
+      const historyId = result.lastInsertId;
+      for (const ing of preparation.ingredients) {
+        await database.execute(
+          "INSERT INTO history_ingredients (history_id, name, grams, tolerance, weight) VALUES ($1, $2, $3, $4, $5)",
+          [historyId, ing.name, ing.grams, ing.tolerance, ing.weight],
+        );
+      }
+      Sentry.logger.info("History entry added", { timestamp, preparationName: preparation.name });
+    } catch (e) {
+      Sentry.captureException(e);
+      Sentry.logger.error("Failed to add history entry", { timestamp, preparationName: preparation.name });
+      throw e;
     }
   },
 };

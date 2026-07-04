@@ -1,5 +1,6 @@
 import { getDb } from "./Database";
 import { PausedPreparation } from "../composables/usePausedPreparations";
+import * as Sentry from "@sentry/vue";
 
 export const PausedPreparationRepository = {
   async getAll(): Promise<PausedPreparation[]> {
@@ -95,42 +96,56 @@ export const PausedPreparationRepository = {
   },
 
   async add(pausedPreparation: PausedPreparation): Promise<void> {
-    const database = await getDb();
-    await database.execute(
-      "INSERT INTO paused_preparations (id, timestamp, preparation_name, tare_weight, note, step) VALUES ($1, $2, $3, $4, $5, $6)",
-      [
-        pausedPreparation.id,
-        pausedPreparation.timestamp,
-        pausedPreparation.preparation.name,
-        pausedPreparation.preparation.tareWeight,
-        pausedPreparation.preparation.note,
-        pausedPreparation.step,
-      ],
-    );
-
-    for (const ing of pausedPreparation.preparation.ingredients) {
+    try {
+      const database = await getDb();
       await database.execute(
-        "INSERT INTO paused_preparation_ingredients (paused_preparation_id, name, grams, tolerance, weight, separately_measured) VALUES ($1, $2, $3, $4, $5, $6)",
+        "INSERT INTO paused_preparations (id, timestamp, preparation_name, tare_weight, note, step) VALUES ($1, $2, $3, $4, $5, $6)",
         [
           pausedPreparation.id,
-          ing.name,
-          ing.grams,
-          ing.tolerance,
-          ing.weight,
-          ing.separatelyMeasured ? 1 : 0,
+          pausedPreparation.timestamp,
+          pausedPreparation.preparation.name,
+          pausedPreparation.preparation.tareWeight,
+          pausedPreparation.preparation.note,
+          pausedPreparation.step,
         ],
       );
+
+      for (const ing of pausedPreparation.preparation.ingredients) {
+        await database.execute(
+          "INSERT INTO paused_preparation_ingredients (paused_preparation_id, name, grams, tolerance, weight, separately_measured) VALUES ($1, $2, $3, $4, $5, $6)",
+          [
+            pausedPreparation.id,
+            ing.name,
+            ing.grams,
+            ing.tolerance,
+            ing.weight,
+            ing.separatelyMeasured ? 1 : 0,
+          ],
+        );
+      }
+      Sentry.logger.info("Paused preparation added", { id: pausedPreparation.id });
+    } catch (e) {
+      Sentry.captureException(e);
+      Sentry.logger.error("Failed to add paused preparation", { id: pausedPreparation.id });
+      throw e;
     }
   },
 
   async remove(id: string): Promise<void> {
-    const database = await getDb();
-    await database.execute(
-      "DELETE FROM paused_preparation_ingredients WHERE paused_preparation_id = $1",
-      [id],
-    );
-    await database.execute("DELETE FROM paused_preparations WHERE id = $1", [
-      id,
-    ]);
+    try {
+      const database = await getDb();
+      await database.execute(
+        "DELETE FROM paused_preparation_ingredients WHERE paused_preparation_id = $1",
+        [id],
+      );
+      await database.execute("DELETE FROM paused_preparations WHERE id = $1", [
+        id,
+      ]);
+      Sentry.logger.info("Paused preparation removed", { id });
+    } catch (e) {
+      Sentry.captureException(e);
+      Sentry.logger.error("Failed to remove paused preparation", { id });
+      throw e;
+    }
   },
 };

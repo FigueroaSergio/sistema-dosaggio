@@ -14,7 +14,8 @@ export const getProgress = (ingredient: IngredientPreparation) => {
   return Math.min(100, getPercentage(ingredient));
 };
 export const getPercentage = (ingredient: IngredientPreparation) => {
-  return Math.max(0, (ingredient.weight / ingredient.grams) * 100);
+  if (ingredient.grams === 0) return 0;
+  return Math.min(100, Math.max(0, (ingredient.weight / ingredient.grams) * 100));
 };
 export function usePreparation() {
   const step = ref(-1);
