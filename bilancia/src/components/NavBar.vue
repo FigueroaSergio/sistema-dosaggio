@@ -36,7 +36,7 @@ const languages = [
   <header
     class="sticky top-0 z-50 w-full bg-white border-b border-gray-200 shadow-sm"
   >
-    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-4">
+    <div class="max-w-7xl mx-auto px-4 h-16 flex items-center gap-2">
       <!-- Title -->
       <h1 class="text-xl lg:text-2xl font-bold text-gray-800 truncate flex-1">
         {{ title }}
@@ -49,9 +49,10 @@ const languages = [
       <!-- Language Selector (Desktop) -->
       <div class="relative hidden lg:block">
         <BaseBtn
-          variant="ghost"
+          variant="secondary"
+          outline
           @click="toggleLang"
-          class="!p-2 shrink-0"
+          class="shrink-0"
           aria-label="Change language"
         >
           <template #icon>

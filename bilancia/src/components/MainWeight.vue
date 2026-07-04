@@ -154,7 +154,7 @@ const totalWeightSoFar = computed(() => {
         </BaseBtn>
         <BaseBtn
           id="next-ingredient-btn"
-          variant="primary"
+          variant="success"
           size="lg"
           block
           :title="t('weight.nextTooltip')"
@@ -166,7 +166,7 @@ const totalWeightSoFar = computed(() => {
 
         <BaseBtn
           id="finish-btn"
-          variant="success"
+          variant="primary"
           size="lg"
           :title="t('weight.recalcTooltip')"
           class="w-full max-w-xs sm:max-w-[200px]"

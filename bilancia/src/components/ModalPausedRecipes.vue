@@ -95,7 +95,7 @@ const onRemove = (id: string) => {
     </template>
 
     <template #footer>
-      <BaseBtn variant="secondary" outline @click="emit('close-modal')">
+      <BaseBtn variant="secondary" @click="emit('close-modal')">
         {{ t("modal.pausedRecipes.close") }}
       </BaseBtn>
     </template>
