@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 import {
   IngredientPreparation,
   Preparation,
   getPercentage,
 } from "../composables/usePreparation";
+const { t } = useI18n();
 const emit = defineEmits<{
   (e: "re-calc" | "next" | "finish" | "save-recipe" | "azzera" | "pause"): void;
 }>();
@@ -85,7 +87,7 @@ const totalWeightSoFar = computed(() => {
               0 0 16px rgba(255, 255, 255, 0.9),
               0 0 24px rgba(255, 255, 255, 0.6);
           "
-          >g</span
+          >{{ t('weight.unit') }}</span
         >
       </div>
 
@@ -95,31 +97,22 @@ const totalWeightSoFar = computed(() => {
           id="target-weight-display"
           class="text-gray-700 text-lg relative z-10"
         >
-          <template v-if="step < 0"> Peso del Contenitore </template>
+          <template v-if="step < 0"> {{ t('weight.containerWeight') }} </template>
           <template v-else>
             {{ preparation.ingredients[step].name }}:<br />
             <span class="text-6xl font-semibold">
-              {{ preparation.ingredients[step].grams.toFixed(0) }} g</span
+              {{ preparation.ingredients[step].grams.toFixed(0) }} {{ t('weight.unit') }}</span
             >
           </template>
         </div>
 
         <div v-if="step >= 0" class="text-gray-700 text-lg relative z-10">
-          Peso Lordo da aggiungere:<br />
+          {{ t('weight.grossWeight') }}<br />
           <span class="text-6xl font-semibold"
-            >{{ totalWeightSoFar.toFixed(0) }} g</span
+            >{{ totalWeightSoFar.toFixed(0) }} {{ t('weight.unit') }}</span
           >
         </div>
       </div>
-
-      <!-- Percentage text below -->
-      <!-- <p
-        id="main-progress-percent"
-        class="text-sm font-medium text-gray-500 text-center mt-1 progress-color-black relative z-10"
-        v-if="step >= 0"
-      >
-        {{ getPercentage(ingredient).toFixed(0) }}% Versato
-      </p> -->
     </div>
 
     <!-- INSTRUCCIÓN ACTUAL -->
@@ -128,56 +121,46 @@ const totalWeightSoFar = computed(() => {
       v-if="!preparation.name"
     >
       <p id="current-instruction" class="text-teal-800 font-medium">
-        👋 Seleziona una ricetta per iniziare la preparazione.
+        {{ t('weight.selectRecipe') }}
       </p>
     </div>
 
     <!-- ACCIONES DE PREPARACIÓN -->
     <div id="prep-actions" class="flex flex-wrap gap-1 pt-2 justify-center">
       <template v-if="preparation.name">
-        <!-- <button
-          v-if="step < 0"
-          id="azzera-btn"
-          class="px-6 py-3 bg-red-600 text-white font-bold rounded-lg shadow-md hover:bg-red-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-          @click="handleAction($event, 'azzera')"
-          title="Azzera la tara"
-        >
-          Azzera
-        </button> -->
-
         <button
           id="recalc-btn"
           class="px-6 py-3 bg-amber-500 text-white font-bold rounded-lg shadow-md hover:bg-amber-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-          title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
+          :title="t('weight.recalcTooltip')"
           @click="handleAction($event, 're-calc')"
         >
-          Ricalcola
+          {{ t('weight.recalculate') }}
         </button>
         <button
           id="pause-btn"
           class="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg shadow-md hover:bg-indigo-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-          title="Sospendi la preparazione attuale per riprenderla più tardi"
+          :title="t('weight.pauseTooltip')"
           @click="handleAction($event, 'pause')"
         >
-          Sospendi
+          {{ t('weight.pause') }}
         </button>
         <button
           id="next-ingredient-btn"
           class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
           @click="handleAction($event, 'next')"
-          title="Passa all'ingrediente successivo"
+          :title="t('weight.nextTooltip')"
         >
-          Continua
+          {{ t('weight.continue') }}
         </button>
 
         <button
           id="finish-btn"
           class="px-6 py-3 bg-blue-500 text-white font-bold rounded-lg shadow-md hover:bg-blue-600 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
-          title="Ricalcola le quantità degli ingredienti rimanenti per assorbire l'eccesso"
+          :title="t('weight.recalcTooltip')"
           v-if="finish"
           @click="handleAction($event, 'finish')"
         >
-          Completa
+          {{ t('weight.complete') }}
         </button>
       </template>
     </div>

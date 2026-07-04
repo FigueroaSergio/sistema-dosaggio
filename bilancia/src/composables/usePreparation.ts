@@ -1,5 +1,6 @@
 import { computed, ComputedRef, reactive, ref } from "vue";
 import { Ingredient, Recipe } from "./useRecipes";
+import i18n from "../i18n";
 export type IngredientPreparation = Ingredient & {
   weight: number;
   separatelyMeasured?: boolean;
@@ -108,7 +109,7 @@ export function usePreparation() {
   const currentStep: ComputedRef<IngredientPreparation> = computed(() => {
     if (step.value === -1) {
       return {
-        name: "Tara",
+        name: i18n.global.t('modal.pausedRecipes.tare'),
         grams: preparation.tareWeight,
         weight: preparation.tareWeight,
         tolerance: 0,

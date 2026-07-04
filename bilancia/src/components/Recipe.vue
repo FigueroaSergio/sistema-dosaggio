@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
 import { Preparation } from "../composables/usePreparation.ts";
+
+const { t } = useI18n();
 
 const props = defineProps<{
   preparation: Preparation;
@@ -21,12 +24,12 @@ const truncatedNote = computed(() => {
 <template>
   <div class="space-y-4">
     <h2 id="prep-title" class="text-2xl font-bold">
-      {{ preparation.name ? preparation.name : "Dettaglio della Ricetta" }}
+      {{ preparation.name ? preparation.name : t('recipe.detail') }}
     </h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="bg-gray-100 p-4 rounded-lg shadow-sm border border-gray-200">
         <p class="text-sm font-medium text-gray-500 uppercase tracking-wider">
-          Peso Netto
+          {{ t('recipe.netWeight') }}
         </p>
         <span id="raw-weight" class="text-4xl font-extrabold text-gray-800"
           >{{ total.toFixed(0) }} g</span
@@ -55,14 +58,14 @@ const truncatedNote = computed(() => {
               d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
             />
           </svg>
-          Note Ricetta
+          {{ t('recipe.notes') }}
         </p>
         <p class="text-sm text-teal-700 leading-tight">
           {{ truncatedNote }}
           <span
             v-if="preparation.note.length > 100"
             class="text-xs font-bold text-teal-600 underline block mt-1"
-            >Leggi tutto</span
+            >{{ t('recipe.readMore') }}</span
           >
         </p>
       </div>
@@ -71,14 +74,14 @@ const truncatedNote = computed(() => {
         class="bg-gray-50 p-4 rounded-lg border border-gray-200 border-dashed flex items-center justify-center"
       >
         <p class="text-gray-400 text-sm italic">
-          Nessuna nota per questa ricetta
+          {{ t('recipe.noNotes') }}
         </p>
       </div>
     </div>
 
     <Modal
       :active="showFullNote"
-      title="Note Ricetta"
+      :title="t('recipe.notes')"
       @close-modal="showFullNote = false"
     >
       <div class="prose prose-sm max-w-none">
@@ -91,7 +94,7 @@ const truncatedNote = computed(() => {
           @click="showFullNote = false"
           class="px-6 py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md"
         >
-          Chiudi
+          {{ t('recipe.close') }}
         </button>
       </div>
     </Modal>

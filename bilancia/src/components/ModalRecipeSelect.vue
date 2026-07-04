@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
+import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
 import { RecipeRegistry } from "../composables/useRecipes";
+
+const { t } = useI18n();
 
 const props = defineProps<{ active: boolean; recipes: RecipeRegistry }>();
 defineEmits<{
@@ -22,7 +25,7 @@ const filteredRecipes = computed(() => {
 <template>
   <Modal
     :active="active"
-    title="🔍 Seleziona Ricetta"
+    :title="t('modal.recipeSelect.title')"
     fullscreen
     @close-modal="$emit('close-modal')"
   >
@@ -30,7 +33,7 @@ const filteredRecipes = computed(() => {
       <input
         type="text"
         v-model="searchQuery"
-        placeholder="Cerca ricetta per nome..."
+        :placeholder="t('modal.recipeSelect.searchPlaceholder')"
         class="w-full p-3 border border-gray-300 rounded-lg focus:ring-teal-500 focus:border-teal-500"
         autofocus
       />
@@ -40,7 +43,7 @@ const filteredRecipes = computed(() => {
         v-if="filteredRecipes.length === 0"
         class="text-center text-gray-500 py-4"
       >
-        Nessuna ricetta trovata
+        {{ t('modal.recipeSelect.noResults') }}
       </div>
       <button
         v-for="name in filteredRecipes"

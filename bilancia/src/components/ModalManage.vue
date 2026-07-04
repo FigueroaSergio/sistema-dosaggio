@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
 import type { Recipe, RecipeRegistry } from "./../composables/useRecipes";
 import { reactive, ref } from "vue";
 import { RecipeValidator } from "../Validators/Recipe";
 import { ValidationError } from "../utils/Validator";
+const { t } = useI18n();
 const { active, recipes } = defineProps<{
   active: boolean;
   recipes: RecipeRegistry;
@@ -37,7 +39,6 @@ const onSave = () => {
   emit("save-recipe", recipeData.name, JSON.parse(JSON.stringify(recipeData)));
   emit("close-modal");
 
-  // Reset form
   recipeData.name = "";
   recipeData.ingredients = [];
 };
@@ -50,25 +51,24 @@ const onEditRecipe = (recipe: Recipe) => {
 <template>
   <Modal
     :active="active"
-    title="✏️ Gestisci Ricette"
+    :title="t('modal.manage.title')"
     @close-modal="$emit('close-modal')"
   >
     <div>
-      <!-- Sezione per creare/modificare ricetta -->
       <div class="mb-6">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">
-          Crea o Modifica Ricetta
+          {{ t('modal.manage.createOrEdit') }}
         </h3>
         <div class="grid grid-cols-1 gap-4 mb-4">
           <div>
             <label class="block text-sm font-medium text-gray-700 mb-2">
-              Nome Ricetta
+              {{ t('modal.manage.recipeName') }}
             </label>
             <input
               id="recipe-name-input"
               type="text"
               v-model="recipeData.name"
-              placeholder="es. Pane Integrale"
+              :placeholder="t('modal.manage.recipeNamePlaceholder')"
               required
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 transition duration-150"
             />
@@ -77,19 +77,18 @@ const onEditRecipe = (recipe: Recipe) => {
               class="error-message"
               v-if="errors && errors.first('root.name')"
             >
-              ⚠️ Nome ricetta obbligatorio
+              {{ t('modal.manage.recipeNameRequired') }}
             </div>
           </div>
         </div>
 
-        <!-- Ingredienti -->
         <div id="ingredients-container" class="mb-4">
-          <h4 class="text-sm font-semibold text-gray-700 mb-2">Ingredienti</h4>
+          <h4 class="text-sm font-semibold text-gray-700 mb-2">{{ t('modal.manage.ingredients') }}</h4>
           <div
             class="ingredient-grams-error error-message"
             v-if="errors && errors.first(`root.ingredients`)"
           >
-            ⚠️ Aggiungere un ingrediente
+            {{ t('modal.manage.addIngredient') }}
           </div>
           <div id="ingredients-list">
             <div
@@ -99,7 +98,7 @@ const onEditRecipe = (recipe: Recipe) => {
               <div class="flex-1">
                 <input
                   type="text"
-                  placeholder="Ingrediente"
+                  :placeholder="t('modal.manage.ingredientPlaceholder')"
                   v-model="ingredient.name"
                   required
                   class="w-full p-2 border border-gray-300 rounded text-sm focus:ring-purple-500 focus:border-purple-500"
@@ -108,13 +107,13 @@ const onEditRecipe = (recipe: Recipe) => {
                   class="ingredient-name-error error-message"
                   v-if="errors && errors.first(`root.ingredients[${idx}].name`)"
                 >
-                  ⚠️ Nome ingrediente obbligatorio
+                  {{ t('modal.manage.ingredientNameRequired') }}
                 </div>
               </div>
               <div class="w-28">
                 <input
                   type="number"
-                  placeholder="Grammi"
+                  :placeholder="t('modal.manage.gramsPlaceholder')"
                   v-model.number="ingredient.grams"
                   step="0.001"
                   required
@@ -127,7 +126,7 @@ const onEditRecipe = (recipe: Recipe) => {
                     errors && errors.first(`root.ingredients[${idx}].grams`)
                   "
                 >
-                  ⚠️ Quantità obbligatoria
+                  {{ t('modal.manage.gramsRequired') }}
                 </div>
               </div>
               <button
@@ -143,7 +142,7 @@ const onEditRecipe = (recipe: Recipe) => {
             class="mt-2 px-3 py-2 bg-gray-200 text-gray-800 text-sm rounded-lg hover:bg-gray-300 transition duration-150"
             @click="onAddIngredient"
           >
-            + Aggiungi Ingrediente
+            {{ t('modal.manage.addIngredientBtn') }}
           </button>
         </div>
 
@@ -153,25 +152,23 @@ const onEditRecipe = (recipe: Recipe) => {
             class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition duration-150"
             @click="$emit('close-modal')"
           >
-            Annulla
+            {{ t('modal.manage.cancel') }}
           </button>
           <button
             id="save-recipe-btn"
             class="flex-1 px-4 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition duration-150"
             @click="onSave"
           >
-            Salva Ricetta
+            {{ t('modal.manage.saveRecipe') }}
           </button>
         </div>
       </div>
 
-      <!-- Lista ricette esistenti -->
       <div class="border-t pt-6">
         <h3 class="text-lg font-semibold text-gray-700 mb-4">
-          Ricette Esistenti
+          {{ t('modal.manage.existingRecipes') }}
         </h3>
         <div id="existing-recipes-list" class="max-h-64 overflow-y-auto">
-          <!-- Ricette caricate dinamicamente -->
           <div
             v-for="recipe of recipes"
             class="bg-gray-50 p-4 rounded-lg mb-3 flex justify-between items-center"
@@ -179,7 +176,7 @@ const onEditRecipe = (recipe: Recipe) => {
             <div>
               <h4 class="font-semibold text-gray-800">{{ recipe.name }}</h4>
               <p class="text-xs text-gray-500">
-                {{ recipe.ingredients.length }} ingredienti
+                {{ t('modal.manage.ingredientsCount', { count: recipe.ingredients.length }) }}
               </p>
             </div>
             <div class="flex gap-2">
@@ -187,13 +184,13 @@ const onEditRecipe = (recipe: Recipe) => {
                 class="edit-recipe-btn px-3 py-1 bg-blue-500 text-white text-xs rounded hover:bg-blue-600"
                 @click="onEditRecipe(recipe)"
               >
-                Modifica
+                {{ t('modal.manage.edit') }}
               </button>
               <button
                 class="delete-recipe-btn px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600"
                 @click="emit('delete-recipe', recipe.name)"
               >
-                Elimina
+                {{ t('modal.manage.delete') }}
               </button>
             </div>
           </div>

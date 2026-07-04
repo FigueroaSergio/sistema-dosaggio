@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import MainWeight from "../components/MainWeight.vue";
 import RecipeComponent from "../components/Recipe.vue";
 import TableRecipe from "../components/TableRecipe.vue";
@@ -20,6 +21,7 @@ import * as Sentry from "@sentry/vue";
 import { message } from "@tauri-apps/plugin-dialog";
 
 const router = useRouter();
+const { t } = useI18n();
 
 const openClean = ref(false);
 const openQuantity = ref(false);
@@ -156,7 +158,7 @@ const savePreparationAsRecipe = async () => {
       !preparation.name ||
       preparation.ingredients.length === 0
     ) {
-      await message("Nessuna preparazione attiva da salvare.");
+      await message(t('preparation.noActivePrep'));
       return;
     }
 
@@ -165,7 +167,7 @@ const savePreparationAsRecipe = async () => {
 
     const newIngredients = preparation.ingredients.map((ing) => ({
       name: ing.name,
-      grams: ing.grams, // Salviamo le quantità target scalate
+      grams: ing.grams,
       tolerance: ing.tolerance || 0,
     }));
 
@@ -176,7 +178,7 @@ const savePreparationAsRecipe = async () => {
     });
 
     Sentry.logger.info("Preparation saved as recipe", { newName });
-    await message(`Ricetta "${newName}" salvata con successo!`);
+    await message(t('preparation.recipeSaved', { name: newName }));
   } catch (e) {
     Sentry.captureException(e);
     Sentry.logger.error("Failed to save preparation as recipe");
@@ -236,7 +238,7 @@ const handleMeasureAlone = (index: number) => {
   };
 
   const tempRecipe: Recipe = {
-    name: `Misura: ${ingredient.name}`,
+    name: `${t('preparation.measurePrefix')} ${ingredient.name}`,
     note: "",
     ingredients: [{ ...ingredient }],
   };
@@ -250,26 +252,26 @@ const handleMeasureAlone = (index: number) => {
 
 <template>
   <div class="bg-gray-50 min-h-screen font-sans flex flex-col">
-    <NavBar title="Inizia Ricetta">
+    <NavBar :title="$t('preparation.title')">
       <template #actions>
         <button
           v-if="pausedPreparations.length > 0"
           @click="openPausedModal = true"
           class="px-4 py-2 border border-indigo-600 text-indigo-600 bg-white font-medium rounded-lg hover:bg-indigo-50 transition shadow-sm"
         >
-          Riprendi ({{ pausedPreparations.length }})
+          {{ $t('preparation.resume') }} ({{ pausedPreparations.length }})
         </button>
         <button
           @click="openRecipeModal = true"
           class="px-4 py-2 border border-teal-600 text-teal-600 bg-white font-medium rounded-lg hover:bg-teal-50 transition shadow-sm"
         >
-          Cerca Ricetta
+          {{ $t('preparation.searchRecipe') }}
         </button>
         <button
           @click="goHome"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
-          Home
+          {{ $t('nav.home') }}
         </button>
       </template>
     </NavBar>

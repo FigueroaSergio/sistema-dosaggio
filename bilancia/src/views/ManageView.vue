@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import {
   RecipeRegistry,
   useRecipes,
@@ -14,6 +15,7 @@ import { save, ask, message } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import * as Sentry from "@sentry/vue";
 
+const { t } = useI18n();
 const nameFilter = ref("");
 
 const router = useRouter();
@@ -75,7 +77,6 @@ const onSave = async () => {
     return;
   }
 
-  // Se stiamo modificando ed il nome è cambiato, eliminiamo la vecchia ricetta
   if (
     isEditing.value &&
     selectedRecipeName.value &&
@@ -85,7 +86,7 @@ const onSave = async () => {
   }
 
   addRecipe(recipeData.name, JSON.parse(JSON.stringify(recipeData)));
-  await message(`Ricetta "${recipeData.name}" salvata con successo!`);
+  await message(t('manage.recipeSaved', { name: recipeData.name }));
 
   selectedRecipeName.value = recipeData.name;
   isEditing.value = true;
@@ -93,7 +94,7 @@ const onSave = async () => {
 };
 
 const onDelete = async (name: string) => {
-  if (await ask("Sei sicuro di voler eliminare questa ricetta?", { kind: "warning" })) {
+  if (await ask(t('manage.confirmDelete'), { kind: "warning" })) {
     deleteRecipe(name);
     if (selectedRecipeName.value === name) {
       createNewRecipe();
@@ -107,10 +108,10 @@ const processImportContent = async (content: string) => {
     parsedRecipes.forEach((r) => {
       addRecipe(r.name, r);
     });
-    await message(`Importate ${parsedRecipes.length} ricette con successo.`);
+    await message(t('manage.importSuccess', { count: parsedRecipes.length }));
     if (fileInput.value) fileInput.value.value = "";
   } catch (err) {
-    await message("Errore durante l'analisi del file CSV.");
+    await message(t('manage.importError'));
   }
 };
 
@@ -134,7 +135,7 @@ const triggerImport = async () => {
       Sentry.captureException(err);
       Sentry.logger.error("Failed to import recipes via Tauri");
       console.error(err);
-      await message("Errore durante l'importazione con i plugin Tauri.");
+      await message(t('manage.importTauriError'));
     }
   } else {
     fileInput.value?.click();
@@ -210,31 +211,31 @@ const onExport = async () => {
       @change="handleImport"
     />
 
-    <NavBar title="Gestione">
+    <NavBar :title="$t('manage.title')">
       <template #actions>
         <button
           @click="createNewRecipe"
           class="px-4 py-2 bg-teal-600 text-white font-medium rounded-lg hover:bg-teal-700 transition shadow-sm"
         >
-          Nuova
+          {{ $t('manage.new') }}
         </button>
         <button
           @click="triggerImport"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
-          Importa
+          {{ $t('manage.import') }}
         </button>
         <button
           @click="onExport"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
-          Esporta
+          {{ $t('manage.export') }}
         </button>
         <button
           @click="router.push('/')"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
-          Home
+          {{ $t('nav.home') }}
         </button>
       </template>
     </NavBar>
@@ -248,13 +249,13 @@ const onExport = async () => {
         class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-100px)] md:h-[calc(100vh-100px)] overflow-hidden"
       >
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
-          Lista ricette
+          {{ $t('manage.recipeList') }}
         </div>
         <div class="p-3 border-b">
           <input
             type="text"
             v-model="nameFilter"
-            placeholder="Cerca per nome..."
+            :placeholder="$t('manage.searchPlaceholder')"
             class="w-full p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
           />
         </div>
@@ -263,7 +264,7 @@ const onExport = async () => {
             v-if="Object.keys(filteredRecipes).length === 0"
             class="text-gray-500 text-center py-8"
           >
-            Nessuna ricetta presente.
+            {{ $t('manage.noRecipes') }}
           </div>
           <div
             v-for="recipe in filteredRecipes"
@@ -280,7 +281,7 @@ const onExport = async () => {
             <div>
               <div class="font-bold text-gray-800">{{ recipe.name }}</div>
               <div class="text-sm text-gray-500 mt-1">
-                {{ recipe.ingredients.length }} ingredienti
+                {{ $t('manage.ingredientsCount', { count: recipe.ingredients.length }) }}
               </div>
             </div>
             <button
@@ -311,45 +312,45 @@ const onExport = async () => {
         <div
           class="p-4 border-b bg-gray-50 font-semibold text-gray-700 flex justify-between items-center"
         >
-          <span>Dettaglio ricetta</span>
+          <span>{{ $t('manage.recipeDetail') }}</span>
           <span
             v-if="isEditing"
             class="text-xs bg-teal-100 text-teal-800 px-2 py-1 rounded"
-            >Modalità modifica</span
+            >{{ $t('manage.editMode') }}</span
           >
           <span
             v-else
             class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded"
-            >Nuova ricetta</span
+            >{{ $t('manage.newRecipe') }}</span
           >
         </div>
 
         <div class="flex-1 overflow-y-auto p-4">
           <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2"
-              >Nome Ricetta</label
+              >{{ $t('manage.recipeName') }}</label
             >
             <input
               type="text"
               v-model="recipeData.name"
-              placeholder="es. Pane Integrale"
+              :placeholder="$t('manage.recipeNamePlaceholder')"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm"
             />
             <div
               class="text-red-600 text-sm mt-1"
               v-if="errors && errors.first('root.name')"
             >
-              Nome ricetta obbligatorio
+              {{ $t('manage.recipeNameRequired') }}
             </div>
           </div>
 
           <div class="mb-6">
             <label class="block text-sm font-semibold text-gray-700 mb-2"
-              >Note</label
+              >{{ $t('manage.notes') }}</label
             >
             <textarea
               v-model="recipeData.note"
-              placeholder="Aggiungi note per questa ricetta..."
+              :placeholder="$t('manage.notesPlaceholder')"
               rows="3"
               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition shadow-sm"
             ></textarea>
@@ -357,19 +358,19 @@ const onExport = async () => {
 
           <div>
             <div class="flex justify-between items-center mb-3">
-              <h4 class="text-sm font-semibold text-gray-700">Ingredienti</h4>
+              <h4 class="text-sm font-semibold text-gray-700">{{ $t('manage.ingredients') }}</h4>
               <button
                 @click="onAddIngredient"
                 class="text-sm text-teal-600 hover:text-teal-800 font-medium px-3 py-1 bg-teal-50 rounded hover:bg-teal-100 transition"
               >
-                + Aggiungi
+                {{ $t('manage.add') }}
               </button>
             </div>
             <div
               class="text-red-600 text-sm mb-3"
               v-if="errors && errors.first(`root.ingredients`)"
             >
-              Aggiungere almeno un ingrediente
+              {{ $t('manage.addAtLeastOne') }}
             </div>
 
             <div class="space-y-4">
@@ -382,7 +383,7 @@ const onExport = async () => {
                 <button
                   @click="onRemoveIngredient(idx)"
                   class="absolute top-2 right-2 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition"
-                  title="Rimuovi ingrediente"
+                  :title="$t('manage.removeIngredient')"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -403,11 +404,11 @@ const onExport = async () => {
                   <div class="md:col-span-6">
                     <label
                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
-                      >Ingrediente</label
+                      >{{ $t('manage.ingredient') }}</label
                     >
                     <input
                       type="text"
-                      placeholder="Nome ingrediente"
+                      :placeholder="$t('manage.ingredientNamePlaceholder')"
                       v-model="ingredient.name"
                       class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-sm bg-white"
                     />
@@ -417,7 +418,7 @@ const onExport = async () => {
                         errors && errors.first(`root.ingredients[${idx}].name`)
                       "
                     >
-                      Obbligatorio
+                      {{ $t('manage.required') }}
                     </div>
                   </div>
 
@@ -425,7 +426,7 @@ const onExport = async () => {
                   <div class="md:col-span-3">
                     <label
                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
-                      >Peso (g)</label
+                      >{{ $t('manage.weight') }}</label
                     >
                     <input
                       type="number"
@@ -441,7 +442,7 @@ const onExport = async () => {
                         errors && errors.first(`root.ingredients[${idx}].grams`)
                       "
                     >
-                      Quantità richiesta
+                      {{ $t('manage.quantityRequired') }}
                     </div>
                   </div>
 
@@ -449,7 +450,7 @@ const onExport = async () => {
                   <div class="md:col-span-3">
                     <label
                       class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1"
-                      >Toll. (g)</label
+                      >{{ $t('manage.tolerance') }}</label
                     >
                     <input
                       type="number"
@@ -481,7 +482,7 @@ const onExport = async () => {
                   d="M12 6v6m0 0v6m0-6h6m-6 0H6"
                 />
               </svg>
-              Nessun ingrediente inserito
+              {{ $t('manage.noIngredients') }}
             </div>
           </div>
 
@@ -490,7 +491,7 @@ const onExport = async () => {
               @click="onSave"
               class="w-full md:w-auto px-8 py-3 bg-teal-600 text-white font-bold rounded-xl hover:bg-teal-700 transition shadow-lg active:scale-95"
             >
-              Salva Ricetta
+              {{ $t('manage.saveRecipe') }}
             </button>
           </div>
         </div>

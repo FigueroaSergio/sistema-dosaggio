@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { Preparation, getPercentage } from "../composables/usePreparation";
+const { t } = useI18n();
 defineEmits<{
   (e: "select", idx: number): void;
   (e: "measure-alone", idx: number): void;
@@ -16,37 +18,36 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
               scope="col"
               class="px-2 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
             >
-              Ingrediente
+              {{ t('table.ingredient') }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              Richiesto
+              {{ t('table.required') }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              Aggiunto
+              {{ t('table.added') }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
             >
-              Versato
+              {{ t('table.poured') }}
             </th>
             <th
               scope="col"
               class="px-4 py-1 text-left text-xs font-medium text-gray-500 uppercase tracking-wider text-center"
               v-if="showActions"
             >
-              Azione
+              {{ t('table.action') }}
             </th>
           </tr>
         </thead>
         <tbody id="recipe-table-body" class="bg-white divide-y divide-gray-200">
-          <!-- Filas de ingredientes se insertarán aquí -->
           <tr
             v-for="(ingredient, index) in preparation.ingredients"
             :key="index"
@@ -73,7 +74,7 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
                 @click.stop="$emit('measure-alone', index)"
                 class="px-2 py-2 bg-teal-100 text-teal-700 text-xs font-bold rounded-lg hover:bg-teal-200 transition"
               >
-                Misura
+                {{ t('table.measure') }}
               </button>
             </td>
           </tr>
@@ -84,13 +85,12 @@ defineProps<{ preparation: Preparation; step: number; showActions: boolean }>();
 </template>
 <style lang="css">
 .current-ingredient-row {
-  background-color: #f0fdf4 !important; /* Green 50 */
-  border-left: 5px solid #059669 !important; /* Green 600 */
+  background-color: #f0fdf4 !important;
+  border-left: 5px solid #059669 !important;
 }
 progress::-webkit-progress-bar {
   background-color: #e5e7eb;
 }
-/* Progress value color defined by JS */
 progress::-webkit-progress-value {
   border-radius: 5px;
   transition: background-color 0.3s;
@@ -104,6 +104,6 @@ progress {
   height: 10px;
   border-radius: 5px;
   overflow: hidden;
-  background-color: #e5e7eb; /* Gray 200 */
+  background-color: #e5e7eb;
 }
 </style>

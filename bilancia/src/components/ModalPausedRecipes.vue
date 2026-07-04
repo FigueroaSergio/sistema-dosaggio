@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import { usePausedPreparations } from "../composables/usePausedPreparations";
+
+const { t } = useI18n();
 
 defineProps<{
   active: boolean;
@@ -31,7 +34,7 @@ const onRemove = (id: string) => {
       class="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[80vh]"
     >
       <div class="p-6 border-b flex justify-between items-center bg-gray-50">
-        <h3 class="text-xl font-bold text-gray-800">Preparazioni in Sospeso</h3>
+        <h3 class="text-xl font-bold text-gray-800">{{ t('modal.pausedRecipes.title') }}</h3>
         <button
           @click="emit('close-modal')"
           class="text-gray-400 hover:text-gray-600 transition"
@@ -58,7 +61,7 @@ const onRemove = (id: string) => {
           v-if="pausedPreparations.length === 0"
           class="text-center py-10 text-gray-500"
         >
-          Nessuna preparazione in sospeso.
+          {{ t('modal.pausedRecipes.noPaused') }}
         </div>
         <div v-else class="space-y-4">
           <div
@@ -78,7 +81,7 @@ const onRemove = (id: string) => {
               <button
                 @click="onRemove(paused.id)"
                 class="text-gray-400 hover:text-red-500 p-1 rounded-lg hover:bg-red-50 transition"
-                title="Elimina sospensione"
+                :title="t('modal.pausedRecipes.deleteTooltip')"
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -96,10 +99,10 @@ const onRemove = (id: string) => {
             </div>
 
             <div class="text-sm text-gray-600 mb-4">
-              Passaggio attuale:
+              {{ t('modal.pausedRecipes.currentStep') }}
               {{
                 paused.step < 0
-                  ? "Tara"
+                  ? t('modal.pausedRecipes.tare')
                   : paused.preparation.ingredients[paused.step]?.name
               }}
             </div>
@@ -108,7 +111,7 @@ const onRemove = (id: string) => {
               @click="onSelect(paused.id)"
               class="w-full py-2 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition shadow-md"
             >
-              Riprendi Preparazione
+              {{ t('modal.pausedRecipes.resume') }}
             </button>
           </div>
         </div>
@@ -119,7 +122,7 @@ const onRemove = (id: string) => {
           @click="emit('close-modal')"
           class="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition"
         >
-          Chiudi
+          {{ t('modal.pausedRecipes.close') }}
         </button>
       </div>
     </div>

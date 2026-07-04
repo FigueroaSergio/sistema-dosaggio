@@ -12,7 +12,7 @@ const router = useRouter();
         class="bg-teal-500 border-2 border-teal-600 hover:bg-teal-600 hover:shadow-lg rounded-xl p-12 text-center transition duration-300 flex flex-col items-center justify-center min-h-[200px]"
       >
         <span class="text-2xl md:text-3xl font-bold text-white"
-          >Inizia ricetta</span
+          >{{ $t('home.startRecipe') }}</span
         >
       </button>
 
@@ -21,7 +21,7 @@ const router = useRouter();
         class="bg-blue-500 border-2 border-blue-600 hover:bg-blue-600 hover:shadow-lg rounded-xl p-12 text-center transition duration-300 flex flex-col items-center justify-center min-h-[200px]"
       >
         <span class="text-2xl md:text-3xl font-bold text-white"
-          >Gestione ricette</span
+          >{{ $t('home.manageRecipes') }}</span
         >
       </button>
 
@@ -30,7 +30,7 @@ const router = useRouter();
         class="bg-purple-500 border-2 border-purple-600 hover:bg-purple-600 hover:shadow-lg rounded-xl p-12 text-center transition duration-300 flex flex-col items-center justify-center min-h-[200px]"
       >
         <span class="text-2xl md:text-3xl font-bold text-white"
-          >Storico ricette</span
+          >{{ $t('home.recipeHistory') }}</span
         >
       </button>
     </div>

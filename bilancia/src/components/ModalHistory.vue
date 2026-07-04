@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
 import { HistoryEntry } from "../composables/useHistory";
+const { t } = useI18n();
 const { active, history } = defineProps<{ active: boolean; history: HistoryEntry[] }>();
 </script>
 <template>
-  <Modal :active="active" title="📋 Storico Preparazioni">
+  <Modal :active="active" :title="t('modal.history.title')">
     <div>
       <div id="history-list" class="max-h-96 overflow-y-auto">
         <div v-for="entry in history" :key="entry.timestamp" class="p-4 border-b">
@@ -20,7 +22,7 @@ const { active, history } = defineProps<{ active: boolean; history: HistoryEntry
           </ul>
         </div>
         <div v-if="!history || history.length === 0" class="text-center text-gray-500 py-4">
-          Nessuna preparazione in storico.
+          {{ t('modal.history.noHistory') }}
         </div>
       </div>
 
@@ -30,7 +32,7 @@ const { active, history } = defineProps<{ active: boolean; history: HistoryEntry
           class="w-full px-4 py-3 bg-gray-400 text-white font-semibold rounded-lg hover:bg-gray-500 transition duration-150"
           @click="$emit('close-modal')"
         >
-          Chiudi
+          {{ t('modal.history.close') }}
         </button>
       </div>
     </div>

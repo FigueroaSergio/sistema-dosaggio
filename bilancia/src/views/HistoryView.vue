@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
 import { useHistory, type HistoryEntry } from "../composables/useHistory.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalSaveRecipeName from "../components/ModalSaveRecipeName.vue";
 import { message } from "@tauri-apps/plugin-dialog";
 
+const { t } = useI18n();
 const dateFrom = ref("");
 const dateTo = ref("");
 
@@ -67,20 +69,20 @@ const confirmSave = async (newName: string) => {
     ingredients: newIngredients,
   });
 
-  await message(`Ricetta "${newName}" salvata con successo!`);
+  await message(t('history.recipeSaved', { name: newName }));
   openSaveModal.value = false;
 };
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col font-sans">
-    <NavBar title="Storico">
+    <NavBar :title="$t('history.title')">
       <template #actions>
         <button
           @click="router.push('/')"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition shadow-sm"
         >
-          Home
+          {{ $t('nav.home') }}
         </button>
       </template>
     </NavBar>
@@ -94,16 +96,16 @@ const confirmSave = async (newName: string) => {
         class="w-full md:w-1/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(50vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden"
       >
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
-          Lista ricette
+          {{ $t('history.recipeList') }}
         </div>
         <div class="p-3 border-b flex items-center gap-2">
-          <label class="text-xs font-semibold text-gray-600 whitespace-nowrap">Da</label>
+          <label class="text-xs font-semibold text-gray-600 whitespace-nowrap">{{ $t('history.from') }}</label>
           <input
             type="date"
             v-model="dateFrom"
             class="flex-1 p-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
           />
-          <label class="text-xs font-semibold text-gray-600 whitespace-nowrap">A</label>
+          <label class="text-xs font-semibold text-gray-600 whitespace-nowrap">{{ $t('history.to') }}</label>
           <input
             type="date"
             v-model="dateTo"
@@ -115,7 +117,7 @@ const confirmSave = async (newName: string) => {
             v-if="filteredHistory.length === 0"
             class="text-gray-500 text-center py-8"
           >
-            Nessuna preparazione in storico.
+            {{ $t('history.noHistory') }}
           </div>
           <div
             v-for="entry in filteredHistory"
@@ -143,14 +145,14 @@ const confirmSave = async (newName: string) => {
         class="w-full md:w-2/3 bg-white border border-gray-200 rounded-lg shadow-sm flex flex-col h-[calc(100vh-120px)] md:h-[calc(100vh-120px)] overflow-hidden"
       >
         <div class="p-4 border-b bg-gray-50 font-semibold text-gray-700">
-          Dettaglio ricetta
+          {{ $t('history.recipeDetail') }}
         </div>
         <div class="flex-1 overflow-y-auto p-6">
           <div
             v-if="!selectedEntry"
             class="h-full flex items-center justify-center text-gray-400 text-lg"
           >
-            Seleziona una ricetta dalla lista per vedere i dettagli
+            {{ $t('history.selectRecipe') }}
           </div>
           <div v-else>
             <h2 class="text-xl font-bold text-gray-900">
@@ -161,7 +163,7 @@ const confirmSave = async (newName: string) => {
             </p>
 
             <h3 class="text-xl font-semibold text-gray-800 mt-2">
-              Ingredienti
+              {{ $t('history.ingredients') }}
             </h3>
             <ul class="space-y-3">
               <li
@@ -186,7 +188,7 @@ const confirmSave = async (newName: string) => {
             <div
               class="flex justify-between items-center mt-4 pt-3 border-t border-gray-300 font-semibold text-gray-800"
             >
-              <span>Totale</span>
+              <span>{{ $t('history.total') }}</span>
               <span class="font-mono text-sm">
                 {{ selectedTotal.weight.toFixed(2) }}g / {{ selectedTotal.grams.toFixed(2) }}g
               </span>
@@ -195,7 +197,7 @@ const confirmSave = async (newName: string) => {
               @click="saveAsRecipe"
               class="mt-4 px-4 py-2 bg-teal-600 text-white text-bold rounded-lg hover:bg-teal-700 transition shadow-md text-sm"
             >
-              Salva Ricetta
+              {{ $t('history.saveRecipe') }}
             </button>
           </div>
         </div>
