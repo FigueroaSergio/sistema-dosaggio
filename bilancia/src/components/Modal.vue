@@ -22,7 +22,7 @@ const style = computed(() => ({ display: active ? "flex" : "none" }));
         :class="
           fullscreen
             ? 'bg-white rounded-xl shadow-2xl p-4 w-full h-full max-w-none mx-0 my-0 min-h-0 flex flex-col'
-            : 'bg-white rounded-xl shadow-2xl p-4 max-w-2xl w-full mx-4 my-8'
+            : 'bg-white rounded-xl shadow-2xl p-4 max-w-2xl w-full mx-4 my-8 max-h-[80vh] flex flex-col overflow-hidden'
         "
       >
         <div class="flex justify-between items-center mb-6">
@@ -37,7 +37,9 @@ const style = computed(() => ({ display: active ? "flex" : "none" }));
             ✕
           </button>
         </div>
-        <slot></slot>
+        <div class="overflow-y-auto min-h-0 flex-1">
+          <slot></slot>
+        </div>
       </div>
     </div>
   </Teleport>

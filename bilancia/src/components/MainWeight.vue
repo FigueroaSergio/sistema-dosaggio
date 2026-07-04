@@ -87,7 +87,7 @@ const totalWeightSoFar = computed(() => {
               0 0 16px rgba(255, 255, 255, 0.9),
               0 0 24px rgba(255, 255, 255, 0.6);
           "
-          >{{ t('weight.unit') }}</span
+          >{{ t("weight.unit") }}</span
         >
       </div>
 
@@ -97,19 +97,22 @@ const totalWeightSoFar = computed(() => {
           id="target-weight-display"
           class="text-gray-700 text-lg relative z-10"
         >
-          <template v-if="step < 0"> {{ t('weight.containerWeight') }} </template>
+          <template v-if="step < 0">
+            {{ t("weight.containerWeight") }}
+          </template>
           <template v-else>
             {{ preparation.ingredients[step].name }}:<br />
             <span class="text-6xl font-semibold">
-              {{ preparation.ingredients[step].grams.toFixed(0) }} {{ t('weight.unit') }}</span
+              {{ preparation.ingredients[step].grams.toFixed(0) }}
+              {{ t("weight.unit") }}</span
             >
           </template>
         </div>
 
         <div v-if="step >= 0" class="text-gray-700 text-lg relative z-10">
-          {{ t('weight.grossWeight') }}<br />
+          {{ t("weight.grossWeight") }}<br />
           <span class="text-6xl font-semibold"
-            >{{ totalWeightSoFar.toFixed(0) }} {{ t('weight.unit') }}</span
+            >{{ totalWeightSoFar.toFixed(0) }} {{ t("weight.unit") }}</span
           >
         </div>
       </div>
@@ -121,7 +124,7 @@ const totalWeightSoFar = computed(() => {
       v-if="!preparation.name"
     >
       <p id="current-instruction" class="text-teal-800 font-medium">
-        {{ t('weight.selectRecipe') }}
+        {{ t("weight.selectRecipe") }}
       </p>
     </div>
 
@@ -134,7 +137,7 @@ const totalWeightSoFar = computed(() => {
           :title="t('weight.recalcTooltip')"
           @click="handleAction($event, 're-calc')"
         >
-          {{ t('weight.recalculate') }}
+          {{ t("weight.recalculate") }}
         </button>
         <button
           id="pause-btn"
@@ -142,15 +145,15 @@ const totalWeightSoFar = computed(() => {
           :title="t('weight.pauseTooltip')"
           @click="handleAction($event, 'pause')"
         >
-          {{ t('weight.pause') }}
+          {{ t("weight.pause") }}
         </button>
         <button
           id="next-ingredient-btn"
-          class="px-6 py-3 bg-green-600 text-white font-bold rounded-lg shadow-md hover:bg-green-700 transition duration-150 w-full max-w-xs sm:max-w-[200px]"
+          class="flex-1 px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
           @click="handleAction($event, 'next')"
           :title="t('weight.nextTooltip')"
         >
-          {{ t('weight.continue') }}
+          {{ t("weight.continue") }}
         </button>
 
         <button
@@ -160,7 +163,7 @@ const totalWeightSoFar = computed(() => {
           v-if="finish"
           @click="handleAction($event, 'finish')"
         >
-          {{ t('weight.complete') }}
+          {{ t("weight.complete") }}
         </button>
       </template>
     </div>

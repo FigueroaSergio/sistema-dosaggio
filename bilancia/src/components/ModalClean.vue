@@ -13,21 +13,21 @@ const { active } = defineProps({ active: Boolean });
   >
     <div>
       <p class="text-gray-600 mb-6">
-        {{ t('modal.clean.instruction') }}
+        {{ t("modal.clean.instruction") }}
       </p>
       <div
         class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6"
       >
         <p class="text-yellow-800 font-medium">
-          {{ t('modal.clean.warning') }}
+          {{ t("modal.clean.warning") }}
         </p>
       </div>
       <button
         id="clean-scale-confirm-btn"
-        class="w-full px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150"
+        class="w-full flex-1 px-4 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 transition duration-150"
         @click="$emit('confirm')"
       >
-        {{ t('modal.clean.done') }}
+        {{ t("modal.clean.done") }}
       </button>
     </div>
   </Modal>
