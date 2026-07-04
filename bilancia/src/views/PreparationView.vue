@@ -17,6 +17,7 @@ import NavBar from "../components/NavBar.vue";
 import ModalPausedRecipes from "../components/ModalPausedRecipes.vue";
 import type { Recipe } from "../composables/useRecipes.ts";
 import * as Sentry from "@sentry/vue";
+import { message } from "@tauri-apps/plugin-dialog";
 
 const router = useRouter();
 
@@ -148,14 +149,14 @@ const handleSaveConfirm = async (saveRecipe: boolean) => {
     openRecipeModal.value = true;
   }
 };
-const savePreparationAsRecipe = () => {
+const savePreparationAsRecipe = async () => {
   try {
     if (
       !preparation ||
       !preparation.name ||
       preparation.ingredients.length === 0
     ) {
-      alert("Nessuna preparazione attiva da salvare.");
+      await message("Nessuna preparazione attiva da salvare.");
       return;
     }
 
@@ -175,7 +176,7 @@ const savePreparationAsRecipe = () => {
     });
 
     Sentry.logger.info("Preparation saved as recipe", { newName });
-    alert(`Ricetta "${newName}" salvata con successo!`);
+    await message(`Ricetta "${newName}" salvata con successo!`);
   } catch (e) {
     Sentry.captureException(e);
     Sentry.logger.error("Failed to save preparation as recipe");

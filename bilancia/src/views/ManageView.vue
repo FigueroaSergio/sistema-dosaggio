@@ -10,7 +10,7 @@ import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
 import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
 import NavBar from "../components/NavBar.vue";
-import { save } from "@tauri-apps/plugin-dialog";
+import { save, ask, message } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import * as Sentry from "@sentry/vue";
 
@@ -67,7 +67,7 @@ const onRemoveIngredient = (idx: number) => {
   recipeData.ingredients.splice(idx, 1);
 };
 
-const onSave = () => {
+const onSave = async () => {
   let result = validator.value.validate(recipeData);
 
   if (result.hasErrors()) {
@@ -85,15 +85,15 @@ const onSave = () => {
   }
 
   addRecipe(recipeData.name, JSON.parse(JSON.stringify(recipeData)));
-  alert(`Ricetta "${recipeData.name}" salvata con successo!`);
+  await message(`Ricetta "${recipeData.name}" salvata con successo!`);
 
   selectedRecipeName.value = recipeData.name;
   isEditing.value = true;
   errors.value = null;
 };
 
-const onDelete = (name: string) => {
-  if (confirm("Sei sicuro di voler eliminare questa ricetta?")) {
+const onDelete = async (name: string) => {
+  if (await ask("Sei sicuro di voler eliminare questa ricetta?", { kind: "warning" })) {
     deleteRecipe(name);
     if (selectedRecipeName.value === name) {
       createNewRecipe();
@@ -101,16 +101,16 @@ const onDelete = (name: string) => {
   }
 };
 
-const processImportContent = (content: string) => {
+const processImportContent = async (content: string) => {
   try {
     const parsedRecipes = parseCSVToRecipes(content);
     parsedRecipes.forEach((r) => {
       addRecipe(r.name, r);
     });
-    alert(`Importate ${parsedRecipes.length} ricette con successo.`);
+    await message(`Importate ${parsedRecipes.length} ricette con successo.`);
     if (fileInput.value) fileInput.value.value = "";
   } catch (err) {
-    alert("Errore durante l'analisi del file CSV.");
+    await message("Errore durante l'analisi del file CSV.");
   }
 };
 
@@ -134,7 +134,7 @@ const triggerImport = async () => {
       Sentry.captureException(err);
       Sentry.logger.error("Failed to import recipes via Tauri");
       console.error(err);
-      alert("Errore durante l'importazione con i plugin Tauri.");
+      await message("Errore durante l'importazione con i plugin Tauri.");
     }
   } else {
     fileInput.value?.click();
@@ -161,7 +161,7 @@ const onExport = async () => {
   } catch (e) {
     Sentry.captureException(e);
     Sentry.logger.error("Failed to export recipes to CSV");
-    alert("Export Tauri: " + e);
+    await message("Export Tauri: " + e);
   }
 
   try {
@@ -173,13 +173,13 @@ const onExport = async () => {
     if (path) {
       await writeTextFile(path, csvData);
       Sentry.logger.info("Recipes exported to file", { path });
-      alert(`File salvato in: ${path}`);
+      await message(`File salvato in: ${path}`);
       return;
     }
   } catch (e) {
     Sentry.captureException(e);
     Sentry.logger.error("Failed to save exported file");
-    alert("Export Tauri: " + e);
+    await message("Export Tauri: " + e);
   }
   try {
     const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
@@ -195,7 +195,7 @@ const onExport = async () => {
   } catch (e) {
     Sentry.captureException(e);
     Sentry.logger.error("Failed to export recipes via blob");
-    alert("Export Tauri Blob " + e);
+    await message("Export Tauri Blob " + e);
   }
 };
 </script>

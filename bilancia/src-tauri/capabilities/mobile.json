@@ -9,6 +9,8 @@
     "sql:default",
     "sql:allow-execute",
     "dialog:default",
+    "dialog:allow-ask",
+    "dialog:allow-message",
     "fs:default",
     "fs:allow-download-write"
   ]

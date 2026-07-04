@@ -5,6 +5,7 @@ import { useHistory, type HistoryEntry } from "../composables/useHistory.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalSaveRecipeName from "../components/ModalSaveRecipeName.vue";
+import { message } from "@tauri-apps/plugin-dialog";
 
 const dateFrom = ref("");
 const dateTo = ref("");
@@ -66,7 +67,7 @@ const confirmSave = async (newName: string) => {
     ingredients: newIngredients,
   });
 
-  alert(`Ricetta "${newName}" salvata con successo!`);
+  await message(`Ricetta "${newName}" salvata con successo!`);
   openSaveModal.value = false;
 };
 </script>
