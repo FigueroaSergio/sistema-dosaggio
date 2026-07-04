@@ -41,6 +41,10 @@ const languages = [
         {{ title }}
       </h1>
 
+      <!-- Desktop Actions -->
+      <div class="hidden lg:flex items-center gap-2">
+        <slot name="actions"></slot>
+      </div>
       <!-- Language Selector (Desktop) -->
       <div class="relative hidden lg:block">
         <button
@@ -81,18 +85,15 @@ const languages = [
               :key="lang.code"
               @click="setLocale(lang.code)"
               class="w-full px-4 py-2 text-left text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors"
-              :class="{ 'bg-teal-50 text-teal-700 font-medium': locale === lang.code }"
+              :class="{
+                'bg-teal-50 text-teal-700 font-medium': locale === lang.code,
+              }"
             >
               <span>{{ lang.flag }}</span>
               <span>{{ lang.label }}</span>
             </button>
           </div>
         </Transition>
-      </div>
-
-      <!-- Desktop Actions -->
-      <div class="hidden lg:flex items-center gap-2">
-        <slot name="actions"></slot>
       </div>
 
       <!-- Mobile Menu Button -->
@@ -161,7 +162,7 @@ const languages = [
         "
       >
         <div class="flex items-center justify-between mb-8">
-          <span class="font-bold text-gray-800">{{ $t('nav.menu') }}</span>
+          <span class="font-bold text-gray-800">{{ $t("nav.menu") }}</span>
           <button
             @click="toggleMenu"
             class="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors shrink-0"
@@ -200,7 +201,9 @@ const languages = [
                 d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
               />
             </svg>
-            <span class="text-xs font-medium text-gray-500 uppercase">Idioma</span>
+            <span class="text-xs font-medium text-gray-500 uppercase"
+              >Idioma</span
+            >
           </div>
           <div class="flex flex-col gap-1">
             <button
@@ -208,7 +211,11 @@ const languages = [
               :key="lang.code"
               @click="setLocale(lang.code)"
               class="w-full px-3 py-2 text-left text-sm flex items-center gap-2 rounded-lg transition-colors"
-              :class="locale === lang.code ? 'bg-teal-50 text-teal-700 font-medium border border-teal-200' : 'text-gray-700 hover:bg-gray-100'"
+              :class="
+                locale === lang.code
+                  ? 'bg-teal-50 text-teal-700 font-medium border border-teal-200'
+                  : 'text-gray-700 hover:bg-gray-100'
+              "
             >
               <span>{{ lang.flag }}</span>
               <span>{{ lang.label }}</span>
