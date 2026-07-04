@@ -5,33 +5,43 @@ import * as Sentry from "@sentry/vue";
 export const RecipeRepository = {
   async getAllRecipes(): Promise<Recipe[]> {
     const database = await getDb();
-    const loadedRecipes = await database.select<{ name: string; note: string }[]>(
-      "SELECT name, note FROM recipes",
-    );
+    const loadedRecipes = await database.select<
+      { name: string; note: string }[]
+    >("SELECT name, note FROM recipes");
 
     const result: Recipe[] = [];
 
     for (const r of loadedRecipes) {
-      const ingredients = await database.select<
-        {
-          name: string;
-          grams: number;
-          tolerance: number;
-        }[]
-      >(
-        "SELECT name, grams, tolerance FROM recipe_ingredients WHERE recipe_name = $1",
-        [r.name],
-      );
+      try {
+        const ingredients = await database.select<
+          {
+            name: string;
+            grams: number;
+            tolerance: number;
+          }[]
+        >(
+          "SELECT name, grams, tolerance FROM recipe_ingredients WHERE recipe_name = $1",
+          [r.name],
+        );
 
-      result.push({
-        name: r.name,
-        note: r.note,
-        ingredients: ingredients.map((i) => ({
-          name: i.name,
-          grams: i.grams,
-          tolerance: i.tolerance,
-        })),
-      });
+        result.push({
+          name: r.name,
+          note: r.note,
+          ingredients: ingredients.map((i) => ({
+            name: i.name,
+            grams: i.grams,
+            tolerance: i.tolerance,
+          })),
+        });
+      } catch (e) {
+        Sentry.captureException(e);
+        Sentry.logger.error("Failed to load ingredients for recipe", { name: r.name });
+        result.push({
+          name: r.name,
+          note: r.note,
+          ingredients: [],
+        });
+      }
     }
 
     return result;

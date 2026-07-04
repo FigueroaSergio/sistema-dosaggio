@@ -82,10 +82,10 @@ const onSave = async () => {
     selectedRecipeName.value &&
     selectedRecipeName.value !== recipeData.name
   ) {
-    deleteRecipe(selectedRecipeName.value);
+    await deleteRecipe(selectedRecipeName.value);
   }
 
-  addRecipe(recipeData.name, JSON.parse(JSON.stringify(recipeData)));
+  await addRecipe(recipeData.name, JSON.parse(JSON.stringify(recipeData)));
   await message(t('manage.recipeSaved', { name: recipeData.name }));
 
   selectedRecipeName.value = recipeData.name;

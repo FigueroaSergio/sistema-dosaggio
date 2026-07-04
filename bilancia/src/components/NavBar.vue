@@ -185,8 +185,15 @@ const languages = [
         </div>
 
         <!-- Language Selector (Mobile) -->
+
+        <div
+          class="flex flex-col gap-3 sidebar-actions pt-2"
+          @click="toggleMenu"
+        >
+          <slot name="actions"></slot>
+        </div>
         <div class="mb-6">
-          <div class="flex items-center gap-2 mb-2">
+          <div class="flex items-center gap-2 mt-4">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="h-4 w-4 text-gray-500"
@@ -221,10 +228,6 @@ const languages = [
               <span>{{ lang.label }}</span>
             </button>
           </div>
-        </div>
-
-        <div class="flex flex-col gap-3 sidebar-actions" @click="toggleMenu">
-          <slot name="actions"></slot>
         </div>
       </aside>
     </Transition>

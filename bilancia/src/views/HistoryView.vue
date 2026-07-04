@@ -4,9 +4,12 @@ import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useHistory, type HistoryEntry } from "../composables/useHistory.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
+import { exportHistoryToCSV } from "../utils/csv-parser.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalSaveRecipeName from "../components/ModalSaveRecipeName.vue";
-import { message } from "@tauri-apps/plugin-dialog";
+import { message, save } from "@tauri-apps/plugin-dialog";
+import { writeTextFile } from "@tauri-apps/plugin-fs";
+import * as Sentry from "@sentry/vue";
 
 const { t } = useI18n();
 const dateFrom = ref("");
@@ -72,12 +75,70 @@ const confirmSave = async (newName: string) => {
   await message(t('history.recipeSaved', { name: newName }));
   openSaveModal.value = false;
 };
+
+const onExportHistory = async () => {
+  const dataToExport = filteredHistory.value.length > 0 ? filteredHistory.value : history;
+  if (dataToExport.length === 0) {
+    await message(t('history.noHistory'));
+    return;
+  }
+
+  let csvData = "";
+  try {
+    csvData = exportHistoryToCSV(dataToExport);
+  } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to export history to CSV");
+    await message("Export error: " + e);
+    return;
+  }
+
+  try {
+    const path = await save({
+      filters: [{ name: "CSV", extensions: ["csv"] }],
+      defaultPath: "storico.csv",
+    });
+
+    if (path) {
+      await writeTextFile(path, csvData);
+      Sentry.logger.info("History exported to file", { path });
+      await message(`File salvato in: ${path}`);
+      return;
+    }
+  } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to save exported history file");
+    await message("Export error: " + e);
+  }
+  try {
+    const blob = new Blob([csvData], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "storico.csv");
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    Sentry.logger.info("History exported via blob download");
+  } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to export history via blob");
+    await message("Export error: " + e);
+  }
+};
 </script>
 
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col font-sans">
     <NavBar :title="$t('history.title')">
       <template #actions>
+        <button
+          @click="onExportHistory"
+          class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
+        >
+          {{ $t('history.export') }}
+        </button>
         <button
           @click="router.push('/')"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 rounded-lg font-medium hover:bg-gray-100 transition shadow-sm"

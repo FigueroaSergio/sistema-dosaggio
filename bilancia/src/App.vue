@@ -4,9 +4,9 @@ import { initRecipes } from './composables/useRecipes';
 import { initHistory } from './composables/useHistory';
 import "./index.css";
 
-onMounted(() => {
-  initRecipes().catch(console.error);
-  initHistory().catch(console.error);
+onMounted(async () => {
+  await initRecipes();
+  await initHistory();
 });
 </script>
 

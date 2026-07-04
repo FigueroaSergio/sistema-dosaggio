@@ -8,7 +8,6 @@ import TableRecipe from "../components/TableRecipe.vue";
 import ModalClean from "../components/ModalClean.vue";
 import ModalQuantity from "../components/ModalQuantity.vue";
 import ModalRecipeSelect from "../components/ModalRecipeSelect.vue";
-import ModalConfirmSave from "../components/ModalConfirmSave.vue";
 import { useWeight } from "../composables/useWeight.ts";
 import { useRecipes } from "../composables/useRecipes.ts";
 import { Preparation, usePreparation } from "../composables/usePreparation.ts";
@@ -17,8 +16,6 @@ import { usePausedPreparations } from "../composables/usePausedPreparations.ts";
 import NavBar from "../components/NavBar.vue";
 import ModalPausedRecipes from "../components/ModalPausedRecipes.vue";
 import type { Recipe } from "../composables/useRecipes.ts";
-import * as Sentry from "@sentry/vue";
-import { message } from "@tauri-apps/plugin-dialog";
 
 const router = useRouter();
 const { t } = useI18n();
@@ -28,14 +25,13 @@ const openQuantity = ref(false);
 const selectRecipe = ref("");
 const quantity = ref<number | null>(null);
 const openRecipeModal = ref(false);
-const openSaveConfirmModal = ref(false);
 const openPausedModal = ref(false);
 const singleMeasurementSource = ref<{
   preparation: Preparation;
   step: number;
 } | null>(null);
 
-const { recipes, addRecipe } = useRecipes();
+const { recipes } = useRecipes();
 const recipe = ref<Recipe | null>(null);
 const recipeTotal = computed(() =>
   recipe.value
@@ -109,7 +105,7 @@ const onConfirmQuantity = () => {
   openQuantity.value = false;
 };
 
-const onFinish = () => {
+const onFinish = async () => {
   if (singleMeasurementSource.value) {
     const { preparation: sourcePreparation, step: sourceStep } =
       singleMeasurementSource.value;
@@ -132,57 +128,15 @@ const onFinish = () => {
     singleMeasurementSource.value = null;
     return;
   }
-  openSaveConfirmModal.value = true;
-};
-
-const handleSaveConfirm = async (saveRecipe: boolean) => {
   try {
     await addHistory(preparation);
-
-    if (saveRecipe) {
-      savePreparationAsRecipe();
-    }
-  } catch (e) {
-    console.log("ERROR", e);
-  } finally {
+    reset();
     selectRecipe.value = "";
+    recipe.value = null;
     quantity.value = null;
-    openSaveConfirmModal.value = false;
     openRecipeModal.value = true;
-  }
-};
-const savePreparationAsRecipe = async () => {
-  try {
-    if (
-      !preparation ||
-      !preparation.name ||
-      preparation.ingredients.length === 0
-    ) {
-      await message(t('preparation.noActivePrep'));
-      return;
-    }
-
-    const timestamp = new Date().toLocaleString();
-    const newName = `${preparation.name} - ${timestamp}`;
-
-    const newIngredients = preparation.ingredients.map((ing) => ({
-      name: ing.name,
-      grams: ing.grams,
-      tolerance: ing.tolerance || 0,
-    }));
-
-    addRecipe(newName, {
-      name: newName,
-      note: preparation.note,
-      ingredients: newIngredients,
-    });
-
-    Sentry.logger.info("Preparation saved as recipe", { newName });
-    await message(t('preparation.recipeSaved', { name: newName }));
   } catch (e) {
-    Sentry.captureException(e);
-    Sentry.logger.error("Failed to save preparation as recipe");
-    throw e;
+    console.log("ERROR saving history", e);
   }
 };
 
@@ -238,7 +192,7 @@ const handleMeasureAlone = (index: number) => {
   };
 
   const tempRecipe: Recipe = {
-    name: `${t('preparation.measurePrefix')} ${ingredient.name}`,
+    name: `${t("preparation.measurePrefix")} ${ingredient.name}`,
     note: "",
     ingredients: [{ ...ingredient }],
   };
@@ -259,19 +213,19 @@ const handleMeasureAlone = (index: number) => {
           @click="openPausedModal = true"
           class="px-4 py-2 border border-indigo-600 text-indigo-600 bg-white font-medium rounded-lg hover:bg-indigo-50 transition shadow-sm"
         >
-          {{ $t('preparation.resume') }} ({{ pausedPreparations.length }})
+          {{ $t("preparation.resume") }} ({{ pausedPreparations.length }})
         </button>
         <button
           @click="openRecipeModal = true"
           class="px-4 py-2 border border-teal-600 text-teal-600 bg-white font-medium rounded-lg hover:bg-teal-50 transition shadow-sm"
         >
-          {{ $t('preparation.searchRecipe') }}
+          {{ $t("preparation.searchRecipe") }}
         </button>
         <button
           @click="goHome"
           class="px-4 py-2 border border-gray-300 bg-white text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition shadow-sm"
         >
-          {{ $t('nav.home') }}
+          {{ $t("nav.home") }}
         </button>
       </template>
     </NavBar>
@@ -298,11 +252,6 @@ const handleMeasureAlone = (index: number) => {
         @close-modal="openRecipeModal = false"
         @select="onRecipeSelected"
       ></ModalRecipeSelect>
-      <ModalConfirmSave
-        :active="openSaveConfirmModal"
-        @close-modal="openSaveConfirmModal = false"
-        @confirm="handleSaveConfirm"
-      ></ModalConfirmSave>
       <ModalPausedRecipes
         :active="openPausedModal"
         @close-modal="openPausedModal = false"
@@ -321,7 +270,6 @@ const handleMeasureAlone = (index: number) => {
             @next="next"
             @re-calc="reCalculate"
             @finish="onFinish"
-            @save-recipe="savePreparationAsRecipe"
             @pause="onPause"
           ></main-weight>
           <RecipeComponent

@@ -1,4 +1,5 @@
 import { Recipe, RecipeRegistry } from "../composables/useRecipes";
+import { HistoryEntry } from "../composables/useHistory";
 
 export function parseCSVToRecipes(csvContent: string): Recipe[] {
   const lines = csvContent.split("\n").filter((line) => line.trim());
@@ -52,6 +53,23 @@ export function exportRecipesToCSV(recipes: RecipeRegistry): string {
         .toFixed(3)
         .replace(".", ",");
       csvContent += `${recipe.name};${ingredient.name};${index + 1};${quantity};${tolerance}\n`;
+    });
+  });
+
+  return csvContent;
+}
+
+export function exportHistoryToCSV(history: HistoryEntry[]): string {
+  let csvContent = "Data;Ricetta;Ingrediente;Grammi;Tolleranza;Peso Reale;Tara\n";
+
+  history.forEach((entry) => {
+    const dateStr = new Date(entry.timestamp).toLocaleString();
+    entry.preparation.ingredients.forEach((ing) => {
+      const grams = (ing.grams || 0).toFixed(3).replace(".", ",");
+      const tolerance = (ing.tolerance || 0).toFixed(3).replace(".", ",");
+      const weight = (ing.weight || 0).toFixed(3).replace(".", ",");
+      const tare = (entry.preparation.tareWeight || 0).toFixed(3).replace(".", ",");
+      csvContent += `${dateStr};${entry.preparation.name};${ing.name};${grams};${tolerance};${weight};${tare}\n`;
     });
   });
 

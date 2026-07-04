@@ -1,5 +1,6 @@
 import { reactive } from "vue";
 import { RecipeRepository } from "../repositories/RecipeRepository";
+import * as Sentry from "@sentry/vue";
 
 export type Ingredient = { name: string; grams: number; tolerance: number };
 export type Recipe = { name: string; ingredients: Ingredient[]; note: string };
@@ -8,9 +9,14 @@ export type RecipeRegistry = Record<string, Recipe>;
 const recipes = reactive<RecipeRegistry>({});
 
 export async function initRecipes() {
-  const loadedRecipes = await RecipeRepository.getAllRecipes();
-  for (const r of loadedRecipes) {
-    recipes[r.name] = r;
+  try {
+    const loadedRecipes = await RecipeRepository.getAllRecipes();
+    for (const r of loadedRecipes) {
+      recipes[r.name] = r;
+    }
+  } catch (e) {
+    Sentry.captureException(e);
+    Sentry.logger.error("Failed to initialize recipes");
   }
 }
 

@@ -8,12 +8,12 @@ import {
 } from "../composables/usePreparation";
 const { t } = useI18n();
 const emit = defineEmits<{
-  (e: "re-calc" | "next" | "finish" | "save-recipe" | "azzera" | "pause"): void;
+  (e: "re-calc" | "next" | "finish" | "azzera" | "pause"): void;
 }>();
 
 const handleAction = (
   e: Event,
-  action: "next" | "re-calc" | "finish" | "azzera" | "pause" | "save-recipe",
+  action: "next" | "re-calc" | "finish" | "azzera" | "pause",
 ) => {
   emit(action);
   if (e.target instanceof HTMLElement) {

@@ -28,6 +28,7 @@ export default {
     total: 'Total',
     saveRecipe: 'Guardar Receta',
     recipeSaved: '¡Receta "{name}" guardada con éxito!',
+    export: 'Exportar',
   },
   manage: {
     title: 'Gestión',
