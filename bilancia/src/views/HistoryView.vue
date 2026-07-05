@@ -18,13 +18,15 @@ const dateFrom = ref("");
 const dateTo = ref("");
 
 const filteredHistory = computed(() => {
-  return history.filter((entry) => {
-    const d = new Date(entry.timestamp);
-    const dateStr = d.toISOString().slice(0, 10);
-    if (dateFrom.value && dateStr < dateFrom.value) return false;
-    if (dateTo.value && dateStr > dateTo.value) return false;
-    return true;
-  });
+  return history
+    .filter((entry) => {
+      const d = new Date(entry.timestamp);
+      const dateStr = d.toISOString().slice(0, 10);
+      if (dateFrom.value && dateStr < dateFrom.value) return false;
+      if (dateTo.value && dateStr > dateTo.value) return false;
+      return true;
+    })
+    .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
 });
 
 const router = useRouter();

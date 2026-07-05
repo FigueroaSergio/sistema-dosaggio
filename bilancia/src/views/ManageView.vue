@@ -3,16 +3,16 @@ import { ref, reactive, computed } from "vue";
 import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import {
-  RecipeRegistry,
   useRecipes,
   type Recipe,
 } from "../composables/useRecipes.ts";
-import { exportRecipesToCSV, parseCSVToRecipes } from "../utils/csv-parser.ts";
+import { exportRecipesToCSV } from "../utils/csv-parser.ts";
 import { RecipeValidator } from "../Validators/Recipe.ts";
 import type { ValidationError } from "../utils/Validator.ts";
 import NavBar from "../components/NavBar.vue";
 import BaseBtn from "../components/BaseBtn.vue";
 import List from "../components/List.vue";
+import ModalImport from "../components/ModalImport.vue";
 import { save, ask, message } from "@tauri-apps/plugin-dialog";
 import { writeTextFile } from "@tauri-apps/plugin-fs";
 import * as Sentry from "@sentry/vue";
@@ -23,18 +23,16 @@ const nameFilter = ref("");
 const router = useRouter();
 const { recipes, addRecipe, deleteRecipe } = useRecipes();
 const filteredRecipes = computed(() => {
-  if (!nameFilter.value) return recipes;
-  const recipeFiltered: RecipeRegistry = {};
-  Object.entries(recipes).forEach(([name, recipe]) => {
-    if (name.toLowerCase().includes(nameFilter.value.toLowerCase())) {
-      recipeFiltered[name] = recipe;
-    }
-  });
+  const source = nameFilter.value
+    ? Object.entries(recipes).filter(([name]) =>
+        name.toLowerCase().includes(nameFilter.value.toLowerCase()),
+      )
+    : Object.entries(recipes);
 
-  return recipeFiltered;
+  return Object.fromEntries(source.sort(([a], [b]) => a.localeCompare(b)));
 });
 const selectedRecipeName = ref<string | null>(null);
-const fileInput = ref<HTMLInputElement | null>(null);
+const showImportModal = ref(false);
 
 const validator = ref(RecipeValidator);
 const recipeData = reactive<Recipe>({
@@ -79,6 +77,18 @@ const onSave = async () => {
     return;
   }
 
+  const isOverwrite =
+    recipes[recipeData.name] &&
+    recipeData.name !== selectedRecipeName.value;
+
+  if (isOverwrite) {
+    const confirmed = await ask(
+      t("manage.confirmOverwrite", { name: recipeData.name }),
+      { kind: "warning" },
+    );
+    if (!confirmed) return;
+  }
+
   if (
     isEditing.value &&
     selectedRecipeName.value &&
@@ -104,59 +114,11 @@ const onDelete = async (name: string) => {
   }
 };
 
-const processImportContent = async (content: string) => {
-  try {
-    const parsedRecipes = parseCSVToRecipes(content);
-    parsedRecipes.forEach((r) => {
-      addRecipe(r.name, r);
-    });
-    await message(t("manage.importSuccess", { count: parsedRecipes.length }));
-    if (fileInput.value) fileInput.value.value = "";
-  } catch (err) {
-    await message(t("manage.importError"));
-  }
-};
-
-const triggerImport = async () => {
-  if ((window as any).__TAURI_INTERNALS__) {
-    try {
-      const { open } = await import("@tauri-apps/plugin-dialog");
-      const { readTextFile } = await import("@tauri-apps/plugin-fs");
-
-      const selected = await open({
-        multiple: false,
-        filters: [{ name: "CSV", extensions: ["csv"] }],
-      });
-
-      if (selected && typeof selected === "string") {
-        const content = await readTextFile(selected);
-        processImportContent(content);
-        Sentry.logger.info("Recipes imported via Tauri file dialog", {
-          path: selected,
-        });
-      }
-    } catch (err) {
-      Sentry.captureException(err);
-      Sentry.logger.error("Failed to import recipes via Tauri");
-      console.error(err);
-      await message(t("manage.importTauriError"));
-    }
-  } else {
-    fileInput.value?.click();
-  }
-};
-
-const handleImport = (event: Event) => {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const content = e.target?.result as string;
-    processImportContent(content);
-  };
-  reader.readAsText(file);
+const onImportRecipes = async (importedRecipes: Recipe[]) => {
+  importedRecipes.forEach((r) => {
+    addRecipe(r.name, r);
+  });
+  await message(t("manage.importSuccess", { count: importedRecipes.length }));
 };
 
 const onExport = async () => {
@@ -207,20 +169,12 @@ const onExport = async () => {
 
 <template>
   <div class="min-h-screen bg-gray-50 flex flex-col font-sans">
-    <input
-      type="file"
-      ref="fileInput"
-      accept=".csv"
-      class="hidden"
-      @change="handleImport"
-    />
-
     <NavBar :title="$t('manage.title')">
       <template #actions>
         <BaseBtn variant="primary" @click="createNewRecipe">
           {{ $t("manage.new") }}
         </BaseBtn>
-        <BaseBtn variant="secondary" outline @click="triggerImport">
+        <BaseBtn variant="secondary" outline @click="showImportModal = true">
           {{ $t("manage.import") }}
         </BaseBtn>
         <BaseBtn variant="secondary" outline @click="onExport">
@@ -479,5 +433,11 @@ const onExport = async () => {
         </div>
       </div>
     </div>
+
+    <ModalImport
+      :active="showImportModal"
+      @close-modal="showImportModal = false"
+      @import-recipes="onImportRecipes"
+    />
   </div>
 </template>

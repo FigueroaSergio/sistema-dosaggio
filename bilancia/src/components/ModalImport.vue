@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import Modal from "./Modal.vue";
+import List from "./List.vue";
+import BaseBtn from "./BaseBtn.vue";
 import { parseCSVToRecipes } from "../utils/csv-parser";
 import type { Recipe } from "../composables/useRecipes";
 
@@ -15,72 +17,199 @@ const emit = defineEmits<{
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const importStatus = ref("");
+const nameFilter = ref("");
+const parsedRecipes = ref<Recipe[]>([]);
+const selectedKeys = ref<string[]>([]);
 
-const onImport = () => {
-  const file = fileInput.value?.files?.[0];
+const filteredRecipes = computed(() => {
+  if (!nameFilter.value) return parsedRecipes.value;
+  return parsedRecipes.value.filter((r) =>
+    r.name.toLowerCase().includes(nameFilter.value.toLowerCase()),
+  );
+});
+
+const allSelected = computed(
+  () =>
+    parsedRecipes.value.length > 0 &&
+    selectedKeys.value.length === parsedRecipes.value.length,
+);
+
+const selectedCountLabel = computed(() =>
+  t("modal.import.selectedCount", {
+    count: selectedKeys.value.length,
+    total: parsedRecipes.value.length,
+  }),
+);
+
+const parseContent = (content: string) => {
+  try {
+    parsedRecipes.value = parseCSVToRecipes(content);
+    selectedKeys.value = parsedRecipes.value.map((r) => r.name);
+    importStatus.value = "";
+  } catch (err) {
+    importStatus.value = t("modal.import.error");
+  }
+};
+
+const openFilePicker = async () => {
+  if ((window as any).__TAURI_INTERNALS__) {
+    try {
+      const { open } = await import("@tauri-apps/plugin-dialog");
+      const { readTextFile } = await import("@tauri-apps/plugin-fs");
+
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: "CSV", extensions: ["csv"] }],
+      });
+
+      if (selected && typeof selected === "string") {
+        const content = await readTextFile(selected);
+        parseContent(content);
+      } else {
+        emit("close-modal");
+      }
+    } catch (err) {
+      importStatus.value = t("modal.import.error");
+    }
+  } else {
+    fileInput.value?.click();
+  }
+};
+
+const onFileChanged = (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
   if (!file) {
-    importStatus.value = t('modal.import.selectFile');
+    emit("close-modal");
     return;
   }
 
   const reader = new FileReader();
   reader.onload = (e) => {
-    try {
-      const content = e.target?.result as string;
-      const parsedRecipes = parseCSVToRecipes(content);
-      emit("import-recipes", parsedRecipes);
-      importStatus.value = t('modal.import.success', { count: parsedRecipes.length });
-      setTimeout(() => {
-        emit("close-modal");
-        importStatus.value = "";
-        if (fileInput.value) fileInput.value.value = "";
-      }, 1500);
-    } catch (err) {
-      importStatus.value = t('modal.import.error');
-    }
+    parseContent(e.target?.result as string);
   };
   reader.readAsText(file);
 };
+
+watch(
+  () => active,
+  (isActive) => {
+    if (isActive) {
+      parsedRecipes.value = [];
+      selectedKeys.value = [];
+      importStatus.value = "";
+      nameFilter.value = "";
+      if (fileInput.value) fileInput.value.value = "";
+      openFilePicker();
+    }
+  },
+);
+
+const toggleSelectAll = () => {
+  if (allSelected.value) {
+    selectedKeys.value = [];
+  } else {
+    selectedKeys.value = parsedRecipes.value.map((r) => r.name);
+  }
+};
+
+const onConfirmImport = () => {
+  const selected = parsedRecipes.value.filter((r) =>
+    selectedKeys.value.includes(r.name),
+  );
+  if (selected.length === 0) return;
+
+  emit("import-recipes", selected);
+  importStatus.value = t("modal.import.success", { count: selected.length });
+  setTimeout(() => {
+    emit("close-modal");
+    resetState();
+  }, 1500);
+};
+
+const resetState = () => {
+  parsedRecipes.value = [];
+  selectedKeys.value = [];
+  importStatus.value = "";
+  if (fileInput.value) fileInput.value.value = "";
+};
+
+const onClose = () => {
+  emit("close-modal");
+  resetState();
+};
 </script>
+
 <template>
   <Modal
     :active="active"
     :title="t('modal.import.title')"
-    @close-modal="$emit('close-modal')"
+    fullscreen
+    @close-modal="onClose"
   >
-    <div>
-      <div class="mb-6">
+    <input
+      ref="fileInput"
+      type="file"
+      accept=".csv"
+      class="hidden"
+      @change="onFileChanged"
+    />
+
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center gap-3">
         <input
-          ref="fileInput"
-          id="csv-file-input"
-          type="file"
-          accept=".csv"
-          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition duration-150"
+          v-model="nameFilter"
+          type="text"
+          :placeholder="t('modal.import.searchPlaceholder')"
+          class="flex-1 p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
         />
+        <span class="text-sm text-gray-600 whitespace-nowrap">{{ selectedCountLabel }}</span>
+        <BaseBtn size="xs" variant="ghost" @click="toggleSelectAll">
+          {{
+            allSelected
+              ? t("modal.import.deselectAll")
+              : t("modal.import.selectAll")
+          }}
+        </BaseBtn>
       </div>
+
       <div
-        id="csv-import-status"
-        class="text-sm mb-4 text-green-600"
-        v-if="importStatus"
+        class="border border-gray-200 rounded-lg overflow-y-auto flex-1"
       >
+        <List
+          :items="filteredRecipes"
+          key-field="name"
+          :model-value="selectedKeys"
+          :multi-select="true"
+          :empty-message="t('modal.import.noRecipes')"
+          @update:model-value="selectedKeys = $event"
+        >
+          <template #description="{ item }">
+            {{
+              t("modal.import.ingredientsCount", {
+                count: item.ingredients.length,
+              })
+            }}
+          </template>
+        </List>
+      </div>
+
+      <div class="text-sm text-green-600" v-if="importStatus">
         {{ importStatus }}
       </div>
-      <div class="flex gap-3">
-        <button
-          id="cancel-import-btn"
-          class="flex-1 px-4 py-3 bg-gray-300 text-gray-800 font-semibold rounded-lg hover:bg-gray-400 transition duration-150"
-          @click="$emit('close-modal')"
-        >
-          {{ t('modal.import.cancel') }}
-        </button>
-        <button
-          id="confirm-import-btn"
-          class="flex-1 px-4 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 transition duration-150"
-          @click="onImport"
-        >
-          {{ t('modal.import.import') }}
-        </button>
-      </div>
     </div>
+
+    <template #footer>
+      <BaseBtn size="lg" variant="secondary" @click="onClose">
+        {{ t("modal.import.cancel") }}
+      </BaseBtn>
+      <BaseBtn
+        size="lg"
+        :disabled="selectedKeys.length === 0"
+        @click="onConfirmImport"
+      >
+        {{ t("modal.import.import") }} ({{ selectedKeys.length }})
+      </BaseBtn>
+    </template>
   </Modal>
 </template>

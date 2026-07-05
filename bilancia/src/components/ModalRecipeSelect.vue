@@ -19,6 +19,7 @@ const filteredRecipes = computed(() => {
   const query = searchQuery.value.toLowerCase();
   return Object.keys(props.recipes)
     .filter((name) => name.toLowerCase().includes(query))
+    .sort((a, b) => a.localeCompare(b))
     .map((name) => ({ name }));
 });
 </script>

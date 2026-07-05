@@ -62,6 +62,8 @@ export default {
     importSuccess: "{count} recetas importadas con éxito.",
     importError: "Error durante el análisis del archivo CSV.",
     importTauriError: "Error durante la importación con los plugins de Tauri.",
+    confirmOverwrite:
+      'Ya existe una receta llamada "{name}". ¿Deseas sobrescribirla?',
     removeIngredient: "Eliminar ingrediente",
     ingredientsCount: "{count} ingredientes",
   },
@@ -137,6 +139,14 @@ export default {
       error: "Error durante el análisis del archivo CSV.",
       cancel: "Cancelar",
       import: "Importar",
+      next: "Siguiente",
+      back: "Atrás",
+      selectAll: "Seleccionar todo",
+      deselectAll: "Desseleccionar todo",
+      selectedCount: "{count} de {total} seleccionadas",
+      noRecipes: "No se encontraron recetas en el archivo.",
+      ingredientsCount: "{count} ingredientes",
+      searchPlaceholder: "Buscar por nombre...",
     },
     manage: {
       title: "Gestionar Recetas",
